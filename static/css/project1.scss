@@ -1,0 +1,191 @@
+$carousel-control-color: black;
+$carousel-caption-color: black;
+$carousel-indicator-active-bg: rgb(59, 53, 53); 
+$h1-color:black;
+$h2-color:black;
+$bg-color-lg: white;
+$bg-color-sm: rgb(189, 165, 165);
+$grid-color: white;
+$grid-item-color: white;
+
+footer {
+    font-size: 9px;
+    color: #f00;
+    text-align: center;
+  }
+  
+  @page {
+    size: A4;
+    margin: 11mm 17mm 17mm 17mm;
+  }
+  
+  @media print {
+    footer {
+      position: fixed;
+      bottom: 0;
+    }
+  
+    .content-block, p {
+      page-break-inside: avoid;
+    }
+  
+    html, body {
+      width: 210mm;
+      height: 297mm;
+    }
+  }
+  
+h1 {
+    color: $h1-color;
+}
+
+h2 {
+    color: $h2-color;
+}
+
+.alert {
+    margin: 20px;
+}
+
+
+@media (min-width: 500px) {
+    body {
+        background-color: $bg-color-lg;
+    }
+    form-inline .form-control{
+        width:400px;
+     }
+    }
+@media (max-width: 499px) {
+body {
+    background-color: $bg-color-sm; 
+}
+form-inline .form-control{
+    width:100px;
+ }
+}
+
+.container {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.label {
+    padding: 10px;
+    text-align: center;
+    font-size: 14px;
+}
+
+.grid {
+    background-color: $grid-color;
+    display: grid;
+    padding: 4px;
+    grid-column-gap: 10px;
+    grid-row-gap: 10px;
+    grid-template-columns: auto auto auto;
+}
+
+.grid-item {
+    background-color: $grid-item-color;
+    padding: 20px;
+    text-align: center;
+}
+
+.grid-item.icon {
+    text-align: center;
+    align-self: center ;
+    /* justify-self: center; */
+}
+
+.grid-item > a > img {
+    width: 200px;
+    height: 200px;
+  }
+
+.grid-item > p.detail {
+    font-size: 14px;
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+
+.grid-item > p.detailmin {
+    font-size: 16px;
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+ .row > div {
+    padding: 20px;
+    /* background-color: rgb(113, 238, 238); */
+    /* border: 2px solid rgb(18, 16, 24); */
+}
+
+a {
+    width: 200px;
+    height: 50px;
+    font-size: 14px;
+}
+
+/* menu del header */
+.nav-link:hover {
+    background-color: rgb(0, 255, 157);
+}
+
+.grid-item:hover {
+    background-color: rgb(10, 255, 213);
+}
+/* a:hover { 
+    background-color: orange;
+}*/
+/* fin menu del header */
+
+.carousel-caption > h3 {
+    background-color: $carousel-caption-color;
+}
+.carousel-caption > p {
+    background-color: $carousel-caption-color;
+}
+/* carrousel index */
+.carousel-inner img {
+    width: 400px;
+    height: 300px;
+  }
+
+ .carousel-inner{
+    width: 400px;
+    height: 300px;
+}
+
+.carousel-control-next,
+.carousel-control-prev {
+    filter: invert(100%);
+}
+/* fin carousel  */
+
+th, td {
+    padding: 20px
+}
+
+table, th, td {
+    // border: 1px solid black !important;
+    border-collapse: collapse;
+  }
+
+
+  
+     
+.radio_item  {
+	position: relative;
+	margin:10px;
+	padding:5px 0 5px 0px; 
+	display: flex;
+    }
+    
+  
+
+.label_item{
+	position: relative;
+	margin-bottom: 30px;
+	padding:5px 0 5px 40px; /* Damos un padding de 60px para posicionar el elemento <i> en este espacio*/
+	display: flex;
+}
+ 

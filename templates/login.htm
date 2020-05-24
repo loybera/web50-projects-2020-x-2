@@ -1,0 +1,57 @@
+{% extends "layout.htm" %}
+{% block title %}Login{% endblock %}
+{% block head %}
+  {{ super() }}
+ 
+{% endblock %}
+
+{% block bTitle %}Welcome to Chat Project 2{% endblock %}
+
+{% block body %}
+
+ 
+      <div class="container"> 
+               
+        <div class="row">
+ 
+          <div class="col-md-6">
+            <h4 class="text-center" style="margin: 0 0 20px 0">Login</h4>
+
+            <form role="form"  method="post" class="login-form"  >
+
+              <!-- {%if channels%}
+                <label for="form-channel">Channel</label>
+                <select id="channel" name="form-channel" class="form-control" required>
+                   <option value="0">Choose channel</option> 
+                  {%for item in channels %}
+                  <option value="{{item.name}}">{{item.name}}  {{item.type}} {{item.owner}}  {%if channel == item.name%} SELECT {%endif%} </option>
+                  {% endfor%}
+                </select>
+                {%endif%} -->
+
+                <div class="form-group">
+                  <label for="form-nickname">Nickname</label>
+                  <input type="text" name="form-nickname"  class="form-control" id="form-nickname" value="{{nickname}}" required>
+                  <small id="textHelp" class="form-text text-muted">Enter your public nickname</small>
+                </div>
+
+                
+                <div align="center">
+                      <button type="submit"  name="action" value="login" class="btn btn-primary">Enter</button>
+                      <button type="button"  onclick="window.location.href='{{url_for('home')}}'" name="action" value="cancel" class="btn btn-secondary" >Cancel</button>
+                    </div>
+              
+                    <div align="center">
+
+                </div>
+               
+                 
+            </form>
+          </div> <!--col-md-12-->
+
+        </div><!--row-->
+      </div> <!--container-->
+  
+ 
+ 
+{% endblock %}

@@ -1,0 +1,106 @@
+{% extends "layout.htm" %}
+{% block title %}Bienvenido{% endblock %}
+{% block head %}
+  {{ super() }}
+ 
+{% endblock %}
+{% block body %}
+
+ 
+
+
+    <script src="http://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
+    <script src="{{ url_for('static', filename='js/index.js') }}"></script>
+
+    
+<div class="container">
+  <div class="row">
+    <div class="col-lg">
+
+        <h3>Hello {{session['nickname']}}</h3>
+        <input type="hidden" id="user" value="{{session['nickname']}}"/>
+
+        <div id="thisChannel">
+          <h1>Channel {{channel}}</h1>
+          <input type="hidden" id="channel_id" value={{channel}}/>
+          <h2>Users</h2>
+          <ul id="channelList">
+            {% if users %}
+            {% for item in users %}
+            {% if item.name == nickname %}  
+            <li>{{item.name}} (YOU) </li>
+            {%else%}
+            <li>{{item.name}}  </li>
+            {%endif%}
+            {% endfor%}
+          {%endif%}
+        </ul>
+        </div>
+
+      <div id="otherChannel">
+        <h1>Others channels</h1>
+          <ul id="channelList">
+            <form id="join" method="POST" action='#'>
+              {% if channels %}
+            {% for item in channels %}
+            {% if item.name != channel %}  
+            <!-- <li><a  href="{{url_for('channel', channel=item.name)}}" >{{item.name}} created by: {{item.owner}}   </a></li>   -->
+            <input type="hidden" name="join_room" id="join_room" value="{{item.name}}" >
+            <input type="text" name="join_room_show" id="join_room_show" value="{{item.name}}" placeholder="Room Name" disabled>
+              <input type="submit"  value="Join Room">
+            {%endif%}
+            {% endfor%}
+          </form>
+
+          <form id="create" method="POST" action='#'>
+            <input type="text" name="create_room" id="create_room" placeholder="Room Name">
+            <input type="submit"  value="Create Room">
+        {%endif%}
+      </ul>
+
+  </div>
+    </div>
+
+    <div class="col-lg">
+
+            <div id="socket">
+              <h1>Messages</h1>
+
+              <ul id="messages">
+
+                  {%if messages%}
+                  {%for item in messages %}
+                  <li>{{item}}   </li>
+                  {% endfor%}
+                {%endif%}
+            </ul>
+            </div>
+            <form id="emit" method="POST" action='#'>
+              <input type="text" name="emit_data" id="emit_data" placeholder="Message">
+              <input type="submit" value="Echo">
+          </form>
+          <form id="send_room" method="POST" action='#'>
+            <input type="text" name="room_name_show" id="room_name_show" value="{{channel}}" placeholder="Room Name" disabled>
+            <input type="hidden" name="room_name" id="room_name" value="{{channel}}" placeholder="Room Name">
+            <input type="text" name="room_data" id="room_data" placeholder="Message">
+            <input type="submit" value="Send to Room">
+        </form>
+        </div> <!-- col-sm-12-->
+ 
+
+    
+        <div class="col-lg">
+          <div id="console">
+            <h1>Console</h1>
+
+            <ul id="log">
+            </ul>
+          </div>
+        </div> <!-- col-sm-12-->
+
+  </div> <!--row-->
+</div> <!--container-->
+
+
+{% endblock %}

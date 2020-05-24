@@ -1,0 +1,71 @@
+{% extends "layout.htm" %}
+{% block title %}Home{% endblock %}
+{% block head %}
+  {{ super() }}
+ 
+{% endblock %}
+
+{% block bTitle %}List Reviews{% endblock %}
+
+{% block body %}
+
+     
+        
+  <div class="container">
+    <div class="row">
+ 
+          
+ 
+          <div class="well configurator">
+              
+            <div id="result"></div>
+            <div id="errorMsg"></div>
+              <br>
+
+                {% if error%}
+                <br>
+                <font size="3" color="red"><h4 id="error">{{error}}</h4></font>
+                {% endif %}
+                <div id="msgDiv"> </div>
+                {% if msgAlert%}
+                <div class="alert alert-success" role="alert"> {{msgAlert}} </div>
+                {% endif %}
+                <br>
+            </div>
+            
+            <!-- <div class="col-sm-8 col-sm-offset-2 form-box">  -->
+            
+          
+                {%if reviews %}
+                <div class="grid">
+
+                {%for item in reviews%}
+
+                  <div class="grid-item">
+                    <p class="detail">Date Review: {{ item.date}}</p> 
+                    <h5>Book: {{ item.title }}</h5>
+                    <p class="detail">Count Reviews: {{item.count_reviews}}</p>
+                    <p class="detail">Average rating: {{item.average_rating}}</p>
+                    <a href="{{url_for('detail', bookId=item.book_id)}}"><img src="/static/img/books/{{item.isbn}}.jpg" onerror="this.onerror=null;this.src='/static/img/books/nopic.jpg';" /></a>
+                    <h5>Name: {{ item.name}}</h5> 
+                    <h5>Rate: {{ "("+ item.rating|string + ") " + item.ratedesc  }}</p> </h5>
+                    <p class="detail">" {{ item.post}} "</p>
+
+                    <input type="hidden" class="isbnGridItem" value="{{ item.isbn }}">
+                   
+               
+                    
+                    </div>
+
+                {%endfor%}
+                {%endif%}
+
+                
+      </div><!--row-->
+    </div> <!--container-->
+
+    
+ 
+      
+ 
+{% endblock %}

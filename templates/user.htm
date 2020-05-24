@@ -1,0 +1,133 @@
+{% extends "layout.htm" %}
+{% block title %}Home{% endblock %}
+{% block head %}
+  {{ super() }}
+ 
+{% endblock %}
+
+{% block bTitle %}User Account{% endblock %}
+
+{% block body %}
+
+     
+        
+  <div class="container">
+    <div class="row">
+ 
+          
+      <div class="title">
+        <h3 id = "titulo1" class="text-center"> Modify User Data </h3>      
+      </div> 
+
+          <div class="well configurator">
+              
+            <div id="result"></div>
+            <div id="errorMsg"></div>
+              <br>
+
+                {% if error%}
+                <br>
+                <font size="3" color="red"><h4 id="error">{{error}}</h4></font>
+                {% endif %}
+                <div id="msgDiv"> </div>
+                {% if msgAlert%}
+                <div class="alert alert-success" role="alert"> {{msgAlert}} </div>
+                {% endif %}
+                <br>
+            </div>
+            
+            <!-- <div class="col-sm-8 col-sm-offset-2 form-box">  -->
+              <div class="col-md-12">
+
+                <form name="formUsuario" role="form" action="" method="post" class="form-control" >
+
+                  <div class="form-group">
+                    <label  for="form-username">Username</label>
+                    <input type="Username" name="form-username" placeholder="Enter your email" class="form-username form-control" id="form-username" value="{{user.username}}" disabled>
+                    <small id="usernameHelp" class="form-text text-muted">Don't worry, we never share it with anybody.</small>
+                  </div>
+                  <div class="form-group">
+                    <label  for="form-name">Public Name</label>
+                    <input type="text" name="form-name" placeholder="Enter your name" class="form-control" id="form-name" value="{{user.name}}" required>
+                    <small id="nameHelp" class="form-text text-muted">Your name for show just on this site.</small>
+                  </div>
+                   <div class="form-group">
+                    <label  for="form-password">Password</label>
+                    <input type="password" name="form-password" placeholder="Enter your password only if you want to change it" class="form-password form-control" id="form-password" value="" >
+                  </div>
+                   <div class="form-group">
+                    <label  for="form-password2">Confirm Password</label>
+                    <input type="password" name="form-password2" placeholder="Repeat your password" class="form-password2 form-control" id="form-password2"   >
+                  </div>
+                  
+                   <div class="form-group">
+                    <label  for="form-lastLogin">Last login</label>
+                    <input type="datetime" class="form-lastLogin form-control" name="form-lastLogin"    value="{{user.lastlogin}}" disabled>
+                  </div>
+                   
+                   <div align="center">
+                      {%if not msgAlert%}
+                      <button type="submit" name="action" value="save" class="btn btn-primary">Save</button>
+                      <button type="button" onclick="window.location.href='/'" name="action" value="cancel" class="btn btn-secondary">Cancel</button>
+                       {%else%} 
+                      <button type="button" onclick="window.location.href='/'" name="action" value="cancel" class="btn btn-secondary">Return</button>
+                      {%endif%}
+
+                 </div>
+               
+                </form>
+              </div>
+    </div> <!--row-->
+  </div><!--container-->
+
+    <div class="title">
+      <h1 padding="40px">Your Activity</h1>
+    </div>  
+            
+    <div class="container">
+    <div class="row">         
+      
+      <div class="title">
+        <h3 id = "titulo1" class="text-center"> Reviews </h3>      
+      </div> 
+
+                {% if userReview %}
+                <div class="table-responsive">
+                    <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Date Review</th>
+                                    <th>Book</th>
+                                    <th>Author</th>
+                                    <th>Rating</th>
+                                     <th>Post</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in userReview %}
+
+                                <tr>
+                                    <td>{{item.date}}</td>
+                                    <td><a href="{{url_for('detail', bookId=item.book_id)}}">{{item.title}}</a></td>
+                                    <td>{{item.author}}</td>
+                                    <td>{{"("+ item.rating|string + ") " + item.ratedesc}}</td>
+                                     <td>{{item.post }}</td>
+                                </tr>
+                            {% endfor %}
+
+                            </tbody>
+                        </table>
+                    </div>
+                  
+                {%endif%}
+      </div> <!--row-->
+    </div><!--container-->
+    
+    {% if not userReview %}
+    <div>
+        <div class="alert alert-info" role="alert"> Still have not posted a review?  just go to our <a href="{{url_for('books', page=0)}}">books list</a></div>
+    </div>    
+    {%endif%}
+      
+ 
+{% endblock %}

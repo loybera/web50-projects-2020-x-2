@@ -1,0 +1,196 @@
+{% extends "layout.htm" %}
+{% block title %}Bienvenido{% endblock %}
+{% block head %}
+  {{ super() }}
+ 
+{% endblock %}
+{% block body %}
+<title>Flask-SocketIO Test</title>
+<script src="//code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js" integrity="sha256-yr4fRk/GU1ehYJPAs8P4JlTgu0Hdsp4ZKrx8bDEDC3I=" crossorigin="anonymous"></script>
+
+<script src="static/js/chat.js"></script>
+<script>
+ function fnSearch() {
+  // Declare variables
+  var input, filter, ul, li, a, i, txtValue;
+  input = document.getElementById('search-bar-value');
+  filter = input.value.toUpperCase();
+  ul = document.getElementsByClassName("inbox_chat")[0];
+  li = ul.getElementsByClassName('chat_list');
+
+  // Loop through all list items, and hide those who don't match the search query
+  for (i = 0; i < li.length; i++) {
+    a = li[i].getElementsByTagName("h5")[0];
+    txtValue = a.textContent || a.innerText;
+    if (txtValue.toUpperCase().indexOf(filter) > -1) {
+      li[i].style.display = "";
+    } else {
+      li[i].style.display = "none";
+    }
+  }
+}
+
+
+
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.11/handlebars.min.js"></script>
+
+<script id="in_message" type="text/x-handlebars-template">
+    <div class="incoming_msg">
+        <div class="incoming_msg_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt="sunil"> </div>
+        <div class="received_msg">
+            <div class="received_withd_msg">
+            <p>{% raw -%}
+                {{ contents1 }}
+            {%- endraw %}</p>
+            <span class="time_date"> {% raw -%}
+                {{ contents2 }}
+            {%- endraw %}  </span></div>
+        </div>
+        </div>
+ </script>
+ <script id="out_message" type="text/x-handlebars-template">
+    <div class="outgoing_msg">
+        <div class="sent_msg">
+            <p>{% raw -%}
+                {{ contents1 }}
+            {%- endraw %}</p>
+            <span class="time_date"> {% raw -%}
+                {{ contents2 }}
+            {%- endraw %}</span> </div>
+        </div>        
+ </script>
+ <script id="tmp_chat_list" type="text/x-handlebars-template">
+  <div class="chat_list" id="{% raw -%}{{ contents_id }}{%- endraw %}">
+                                
+    <div class="chat_people">
+    <div class="chat_img"> <img src="/static/img/books/006077407X.jpg" alt="{% raw -%}{{ contents_id }}{%- endraw %}"> </div>
+    <div class="chat_ib">
+        <h5>{% raw -%}{{ contents_id }}{%- endraw %} <span class="chat_date">Dec 25</span></h5>
+        <p>desripcion del chat.</p>
+    </div>
+    </div>
+</div>
+</script>
+ <!------ Include the above in your HEAD tag ---------->
+
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css" type="text/css" rel="stylesheet">
+<link rel="stylesheet" href="{{url_for('static', filename='css/chat.css')}}">
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+</head>
+<body>
+
+ 
+<!-- Modal -->
+<div id="myModal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Add Channel</h4>
+      </div>
+      <div class="modal-body">
+        <div class="modal-inbox_chat">
+            {%if list_channel%}
+                <form id="join" method="POST" action='#'>
+                {%for item in list_channel %}
+                         <div class="modal-chat_list" id="{{item.name}}">
+                            <div class="chat_people">
+                            <div class="chat_img"> <img src="/static/img/books/006077407X.jpg" alt="{{item.name}}"> </div>
+                            <div class="chat_ib">
+                                <h5>{{item.name}} <span class="chat_date">Dec 25</span></h5>
+                                <p>desripcion del chat.</p>
+                                <input type="hidden" name="join_room" id="join_room_{{item.name}}" value="{{item.name}}">
+                                <input type="submit" value="Join Room">
+                            </div>
+                            </div>
+                        </div>
+                 {% endfor%}
+                </form>    
+                {%endif%}  
+        </div> <!--modal-inbox_chat-->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+<!--end modal-->
+
+<div class="container">
+  <h3 class=" text-center">Messaging</h3>
+  <h4 class=" text-center">Hello {{nickname}}.</h4>
+  <input type="hidden" id="nickname" value="{{nickname}}">
+  <div class="messaging">
+        <div class="inbox_msg">
+          <div class="inbox_people">
+            <div class="headind_srch">
+              <div class="recent_heading">
+                <h4>Recent</h4>
+              </div>
+              <div class="srch_bar">
+                <div class="stylish-input-group">
+                  <button type="button" id="add-channel" data-toggle="modal" data-target="#myModal">  <i class="fa fa-plus-circle" aria-hidden="true"></i> </button>
+
+                  <input type="text" class="search-bar" onkeyup="fnSearch()" id="search-bar-value" placeholder="Search" >
+                  <span class="input-group-addon">
+                  <button type="button" > <i class="fa fa-search" aria-hidden="true"></i> </button>
+                  </span> </div>
+              </div>
+            </div>
+            <div class="inbox_chat" id="inbox_chat">
+
+              {%if list_channel%}
+                  {%for item in list_channel %}
+                            <div class="chat_list" id="{{item.name}}">
+                                
+                                <div class="chat_people">
+                                <div class="chat_img"> <img src="/static/img/books/006077407X.jpg" alt="{{item.name}}"> </div>
+                                <div class="chat_ib">
+                                    <h5>{{item.name}} <span class="chat_date">Dec 25</span></h5>
+                                    <p>desripcion del chat.</p>
+                                </div>
+                                </div>
+                            </div>
+  
+                  {% endfor%}
+            {%endif%}  
+  
+            </div> <!-- inbox_chat -->
+          </div>
+          {%if list_channel%}   
+            {%for item in list_channel %}        
+              <div class="mesgs" id="msgs-{{item.name}}">
+                <div class="msg_history" id="msg_history">
+                    <!-- chat.js put content here -->
+                </div>
+              </div>
+            {% endfor%}
+            {%endif%} 
+
+              
+              <div class="type_msg">
+                  <div class="input_msg_write">
+                      <form id="send_room" method="POST" action='#'>
+                          <input type="text" name="room_data" id="room_data" class="write_msg" placeholder="Type a message" required/>
+                          <input type="hidden" name="room_name" id="room_name">
+                          <button class="msg_send_btn" type="submit"><i class="fa fa-paper-plane-o" aria-hidden="true"></i></button>
+                      </form>
+                  </div>
+              </div>
+
+        </div>
+        
+        <div id="log"></div>
+        
+  </div> <!--messaging-->
+</div> <!--container-->
+  
+{% endblock %}  

@@ -1,0 +1,75 @@
+{% extends "layout.htm" %}
+{% block title %}Home{% endblock %}
+{% block head %}
+  {{ super() }}
+ 
+{% endblock %}
+{% block bTitle %}List of Books{% endblock %}
+
+{% block body %}
+
+<script src="{{url_for('static', filename='js/search.js')}}"></script>
+
+       
+ 
+
+<div class="container">
+            <div class="row">
+                <div>
+                    <div class="col-sm-6">
+                        
+        
+                         
+ 
+                          {%if channels %}
+                          <div class="grid">
+
+                          {%for item in channels%}
+
+                            <div class="grid-item">
+                                    <a href="{{url_for('channel', name=item.name)}}"></a>
+                                    <h2> {{ item.title }} </h2>
+                                    <p class="detail">{{ item.name }} </p>
+                                    <p class="detail">Owner: {{ item.owner }}</p>
+                                    <p class="detail">Users: {{ item.count_users }}</p>
+                                    <input type="hidden" class="channelGridItem" value="{{ item.name }}">
+                                   
+                                    {%if channelGetAPI == 'True'%}
+                                    <h3>GoodReads Statistics</h3>
+                                    <div id="goodreads{{ item.count_users }}"></div>
+                                    {%endif%
+
+                                    
+                            </div>
+
+                        {%endfor%}
+
+                        <!--see more-->
+                        <div class="grid-item icon">
+                          {%if nextPage%}  
+                            <a href="{{url_for('channel', page=nextPage)}}">
+                              <h3>See more Books >></h3>
+                            </a>
+                            {%else%}
+                              <a href="{{url_for('channel', page=0)}}">
+                              <h3> << No more Books. Start again</h3>
+                            {%endif%}
+                        </div>
+
+                        </div>
+
+                        {%endif%}
+
+       
+                              
+
+ 
+                    </div><!--col-md-12-->
+                </div>
+            </div> <!--row-->
+        </div>  <!--container-->
+
+{% endblock %}
+       
+    
+  
