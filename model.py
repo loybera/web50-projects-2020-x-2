@@ -5,44 +5,35 @@ from datetime import date
 
 class Channel:
 
-    counter = 1
-
-    def __init__(self, name, type, owner):
+    def __init__(self, channel, name,  owner, public):
 
         # # Keep track of id number.
-        # self.id = Channel.counter
-        # Channel.counter += 1
+        self.id = channel
+
 
         # Keep track of passengers.
         self.users = []
         self.messages = []
 
-        # Details about flight.
         self.name = name
-        self.type = type
+        self.public = public
         self.owner = owner
         # self.socket = socket
 
 
     def print_info(self):
-        print("-----inicio-----")
-        print(f"Channel name: {self.name}")
-        print(f"Channel type: {self.type}")
-        print(f"Channel owner: {self.owner}")
-
-        print()
+        print("-----begin-----")
+        print(f"Channel id: {self.id}  name: {self.name} public: {self.public} Owner: {self.owner}")
         print(f"Users in channel: {len(self.users)}")
         for user in self.users:
-            print(user)
+            print(repr(user))
 
         print(f"Messages in channel: {len(self.messages)}")
         for msg in self.messages:
             print(repr(msg))
 
-        print("-----fin-----")
-
-    def delay(self, amount):
-        self.duration += amount
+        print("--end channel--")
+ 
 
     def add_user(self, u):
         self.users.append(u)
@@ -59,23 +50,41 @@ class Channel:
 
 class User:
 
+    counter = 1
 
     def __init__(self, name):
+        # Keep track of id number.
+        self.id = User.counter
+        User.counter += 1
+
         self.name = name
         self.active = True
-
         self.channels = []
 
     def add_channel(self, c):
         self.channels.append(c)
 
     def __repr__(self):
-        return "user: " +self.name + ' active:' + str(self.active)
+        return (f"User #{self.id} Name: {self.name} Active: {self.active}")
 
+class ChannelUser:
+
+
+    def __init__(self, id, name):
+
+        # # Keep track of id number.
+        self.id = id
+        self.name = name
 
 class Message:
 
+    counter = 1
+
     def __init__(self, user, time, post):
+        # Keep track of id number.
+        self.id = Message.counter
+        Message.counter += 1
+        
         self.time = time
         self.user = user
         self.post = post
@@ -84,7 +93,7 @@ class Message:
         
     def __repr__(self):
 
-        return (f"Message from {self.user} in {self.time} with {self.post}")
+        return (f"Message #{self.id} from {self.user} in {self.time} post: {self.post}")
     
     def toJSON(self):
         return json.dumps(self, default=lambda o: o.__dict__, 

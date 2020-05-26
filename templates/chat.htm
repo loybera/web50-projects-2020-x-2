@@ -5,7 +5,7 @@
  
 {% endblock %}
 {% block body %}
-<title>Flask-SocketIO Test</title>
+<title>El Chat</title>
 <script src="//code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js" integrity="sha256-yr4fRk/GU1ehYJPAs8P4JlTgu0Hdsp4ZKrx8bDEDC3I=" crossorigin="anonymous"></script>
 
@@ -14,7 +14,7 @@
  function fnSearch() {
   // Declare variables
   var input, filter, ul, li, a, i, txtValue;
-  input = document.getElementById('search-bar-value');
+  input = document.getElementById('search_bar_value');
   filter = input.value.toUpperCase();
   ul = document.getElementsByClassName("inbox_chat")[0];
   li = ul.getElementsByClassName('chat_list');
@@ -31,14 +31,31 @@
   }
 }
 
+function fnModalSearch() {
+  // Declare variables
+  var input, filter, ul, li, a, i, txtValue;
+  input = document.getElementById('modal_search_bar_value');
+  filter = input.value.toUpperCase();
+  ul = document.getElementsByClassName("modal_inbox_chat")[0];
+  li = ul.getElementsByClassName('modal_chat_list');
 
-
+  // Loop through all list items, and hide those who don't match the search query
+  for (i = 0; i < li.length; i++) {
+    a = li[i].getElementsByTagName("h5")[0];
+    txtValue = a.textContent || a.innerText;
+    if (txtValue.toUpperCase().indexOf(filter) > -1) {
+      li[i].style.display = "";
+    } else {
+      li[i].style.display = "none";
+    }
+  }
+}
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.11/handlebars.min.js"></script>
 
-<script id="in_message" type="text/x-handlebars-template">
+<script id="in_msg_template" type="text/x-handlebars-template">
     <div class="incoming_msg">
-        <div class="incoming_msg_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt="sunil"> </div>
+        <div class="incoming_msg_img"> <img src="https://ptetutorials.com/images/user-profile.png"> </div>
         <div class="received_msg">
             <div class="received_withd_msg">
             <p>{% raw -%}
@@ -50,7 +67,7 @@
         </div>
         </div>
  </script>
- <script id="out_message" type="text/x-handlebars-template">
+ <script id="out_msg_template" type="text/x-handlebars-template">
     <div class="outgoing_msg">
         <div class="sent_msg">
             <p>{% raw -%}
@@ -61,12 +78,13 @@
             {%- endraw %}</span> </div>
         </div>        
  </script>
- <script id="tmp_chat_list" type="text/x-handlebars-template">
-    <div class="chat_list" id="{% raw -%}{{ contents_id }}{%- endraw %}">             
+ <script id="join_chn_template" type="text/x-handlebars-template">
+    <div class="chat_list" id="{% raw -%}{{ contents1 }}{%- endraw %}">             
       <div class="chat_people">
-        <div class="chat_img"> <img src="/static/img/books/006077407X.jpg" alt="{% raw -%}{{ contents_id }}{%- endraw %}"> </div>
+        <div class="chat_img"> <img src="/static/img/books/006077407X.jpg" alt="{% raw -%}{{ contents2 }}{%- endraw %}"> </div>
         <div class="chat_ib">
-            <h5>{% raw -%}{{ contents_id }}{%- endraw %} <span class="chat_date">Dec 25</span></h5>
+            <h5 id="{% raw -%}{{ contents1 }}{%- endraw %}_name">{% raw -%}{{ contents2 }}{%- endraw %}</h5>
+
             <p>desripcion del chat.</p>
         </div>
       </div>
@@ -83,43 +101,77 @@
 <body>
 
  <!-- Modal -->
-<div id="myChannelModal" class="modal fade" role="dialog">
+<div id="myJoinChannelModal" class="modal fade" role="dialog">
   <div class="modal-dialog">
 
-    <!-- Modal content-->
+    <!-- Modal Join content-->
     <div class="modal-content">
       <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal">&times;</button>
-        <h4 class="modal-title">Add Channel</h4>
+        <h4 class="modal-title">Join Channel</h4>
       </div>
       <div class="modal-body">
-        <div class="modal-inbox_chat">
+        <div class="modal_inbox_chat">
+          <div>
+          <span class="input-group-addon">
+            <input type="text" class="search_bar" onkeyup="fnModalSearch()" id="modal_search_bar_value" placeholder="Search" >
+            <button type="button" > <i class="fa fa-search" aria-hidden="true"></i> </button>
+          </span> 
             {%if list_channel%}
                 <form id="join" method="POST" action='#'>
                 {%for item in list_channel %}
-                         <div class="modal-chat_list" id="{{item.name}}">
+                         <div class="modal_chat_list" id="{{item.id}}">
                             <div class="chat_people">
                             <div class="chat_img"> <img src="/static/img/books/006077407X.jpg" alt="{{item.name}}"> </div>
                             <div class="chat_ib">
-                                <h5>{{item.name}}</h5>
-                                <input type="hidden" name="join_room" id="join_room_{{item.name}}" value="{{item.name}}">
-                                <input type="submit" name="join_room" id="btn_join_room_{{item.name}}" value="Join">
+                                <h5 id="{{item.id}}_name">{{item.name}}</h5>
+                                <input type="hidden" name="join_room" id="join_room_{{item.id}}" value="{{item.id}}">
+                                <input type="submit" name="join_room" id="btn_join_room_{{item.id}}" value="Join">
                             </div>
                             </div>
                         </div>
                  {% endfor%}
                 </form>    
                 {%endif%}  
-        </div> <!--modal-inbox_chat-->
+              </div>
+
+              </div> <!--modal-inbox_chat-->
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-default close" data-dismiss="modal">Close</button>
       </div>
     </div>
 
   </div>
 </div>
-<!--end modal-->
+<!--end Join modal-->
+
+ <!-- Modal -->
+  <div id="myNewChannelModal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+  <!-- Modal new content-->
+  <div class="modal-content">
+    <div class="modal-header">
+      <h4 class="modal-title">New Channel</h4>
+    </div> <!--header-->
+    <div class="modal-body">
+      <div class="modal_inbox_chat">
+          <div>
+              <form id="create" method="POST" action='#'>
+                  <input type="text" name="create_room" id="create_room" alt="Type your new conversation name" required>
+                  <input type="submit" name="btn_create_room" id="btn_create_room" value="Create">
+              </form>   
+          </div> 
+      </div> <!--modal-inbox_chat-->
+    <div class="modal-footer">
+      <button type="button" class="btn btn-default close" data-dismiss="modal">Close</button>
+    </div> <!--footer-->
+
+    </div> <!--body-->
+  </div> <!--content-->
+  </div> <!--modal-dialog-->
+  </div>
+<!--end New modal-->
+
 
 <div class="container">
   <h3 class=" text-center">Messaging</h3>
@@ -134,38 +186,56 @@
             </div>
             <div class="srch_bar">
               <div class="stylish-input-group">
-                <button type="button" id="add-channel" data-toggle="modal" data-target="#myChannelModal">  <i class="fa fa-plus-circle" aria-hidden="true"></i> </button>
+                <button type="button" id="new-channel" data-toggle="modal" data-target="#myNewChannelModal">  New <i class="fa fa-plus" aria-hidden="true"></i> </button>
+                <button type="button" id="add-channel" data-toggle="modal" data-target="#myJoinChannelModal">  Join <i class="fa fa-plus" aria-hidden="true"></i> </button>
 
-                <input type="text" class="search-bar" onkeyup="fnSearch()" id="search-bar-value" placeholder="Search" >
                 <span class="input-group-addon">
-                <button type="button" > <i class="fa fa-search" aria-hidden="true"></i> </button>
-                </span> </div>
+                  <input type="text" class="search_bar" onkeyup="fnSearch()" id="search_bar_value" placeholder="Search" >
+                  <button type="button" > <i class="fa fa-search" aria-hidden="true"></i> </button>
+                </span> 
+              </div>
             </div>
           </div>
           <div class="inbox_chat" id="inbox_chat">
 
-            {%if list_channel%}
-                {%for item in list_channel %}
-                          <div class="chat_list" id="{{item.name}}">
-                              
+            {%if list_usr_channel%}
+                {%for item in list_usr_channel %}
+                  {%if loop.index == 1 %}
+                           <div class="chat_list active_chat" id="{{item.id}}">
+                  {%else%}            
+                           <div class="chat_list" id="{{item.id}}">
+                  {%endif%}
                               <div class="chat_people">
                               <div class="chat_img"> <img src="/static/img/books/006077407X.jpg" alt="{{item.name}}"> </div>
                               <div class="chat_ib">
-                                  <h5>{{item.name}} <span class="chat_date">Dec 25</span></h5>
+                                  <h5 id="{{item.id}}_name">{{item.name}} </h5>
                                   <p>desripcion del chat.</p>
                               </div>
                               </div>
                           </div>
-
-                {% endfor%}
+                 {% endfor%}
           {%endif%}  
 
           </div> <!-- inbox_chat -->
         </div>
-        <div class="mesgs" id="msgs">
-          {%if list_channel%}   
-            {%for item in list_channel %}        
-                <div class="msg_history" id="msg_history-{{item.name}}">
+
+        <div class="msgs_top" id="msgs_top">
+          <h4 id="msgs_top_label"></h4>
+          <input type="hidden" id="msgs_top_label_room">
+          <form id="leave" method="POST" action='#'>
+            <input type="submit" name="btn_leave_room" id="btn_leave_room" value="Leave" >
+        </form>
+
+
+        </div>
+ 
+
+        <div class="msgs" id="msgs">
+          {%if list_usr_channel%}   
+
+            {%for item in list_usr_channel %}  
+   
+                <div class="msg_history" id="msg_history_{{item.id}}">
                     <!-- chat.js put content here -->
                 </div>
             {% endfor%}

@@ -176,40 +176,7 @@ $(document).ready(function() {
       return false;
   });
   $('form#create').submit(function(event) {
-    var label = $('#create_room').val();
-    channel = label.replace(/[^A-Z0-9]+/ig, "").toLowerCase();
-
-    document.getElementById("msgs_top_label_room").innerHTML=channel;
-    document.getElementById("msgs_top_label").innerHTML=label;
-    document.getElementById('btn_leave_room').style.visibility = 'visible';
-
-    $(".msg_history").hide();
-    var attrId = document.createAttribute("id");
-    attrId.value= "msg_history_"+channel;
-
-    var msgHistory = document.createElement("div");
-    msgHistory.classList.add("msg_history");
-
-    msgHistory.setAttributeNode(attrId);
-    msgBefore =  document.getElementsByClassName("type_msg")[0];
-    document.getElementById("msgs").insertBefore(msgHistory, msgBefore);
-
-    $('div.chat_list').not($("#"+channel)).removeClass('active_chat')
-    $("#room_name").val(channel);
-    $('#room_data').val('');
-    
-    $('#myNewChannelModal .close').click();
-    
-    if($(".chat_list#"+channel).length == 0) {
-        add_channel(channel, label);
-        $(".modal_chat_list#"+channel).remove();
-        $(".chat_list#"+channel).addClass('active_chat');
-
-    } else {
-        $(".modal_chat_list#"+channel).remove();
-    }
-    
-    socket.emit('join', {room: channel, create_room: 'True', data: label});
+    socket.emit('join', {room: $('#create_room').val()});
     return false;
    });
 
@@ -224,21 +191,14 @@ $(document).ready(function() {
     
 
             $(".msg_history").hide();
-            var attrId = document.createAttribute("id");
-            attrId.value= "msg_history_"+channel;
-
-            var msgHistory = document.createElement("div");
-            msgHistory.classList.add("msg_history");
-
-            msgHistory.setAttributeNode(attrId);
-            msgBefore =  document.getElementsByClassName("type_msg")[0];
-            document.getElementById("msgs").insertBefore(msgHistory, msgBefore);
-
+            var msgHistory = document.createElement("div").addClass("msg_history");
+            msgHistory.id = "msg_history_"+channel;
+            document.getElementById("msgs").appendChild(msgHistory);
+            
+            $(".msg_history#msg_history_"+channel).show();
             $('div.chat_list').not($("#"+channel)).removeClass('active_chat')
             $("#room_name").val(channel);
-            $('#room_data').val('');
-            
-            $('#myJoinChannelModal .close').click();
+            $('#myChannelModal .close').click();
             
             if($(".chat_list#"+channel).length == 0) {
                 add_channel(channel, label);
