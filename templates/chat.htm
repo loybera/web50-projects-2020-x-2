@@ -1,0 +1,304 @@
+{% extends "layout.htm" %}
+{% block title %}Bienvenido{% endblock %}
+{% block head %}
+  {{ super() }} 
+{% endblock %}
+{% block body %}
+<title>El Chat</title>
+<script src="//code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js" integrity="sha256-yr4fRk/GU1ehYJPAs8P4JlTgu0Hdsp4ZKrx8bDEDC3I=" crossorigin="anonymous"></script>
+
+<script src="static/js/chat.js"></script>
+<script>
+ function fnSearch() {
+    // Declare variables
+    var input, filter, ul, li, a, i, txtValue;
+    input = document.getElementById('search_bar_value');
+    filter = input.value.toUpperCase();
+    ul = document.getElementsByClassName("inbox_chat")[0];
+    li = ul.getElementsByClassName('chat_list');
+
+    // Loop through all list items, and hide those who don't match the search query
+    for (i = 0; i < li.length; i++) {
+      a = li[i].getElementsByTagName("h5")[0];
+      txtValue = a.textContent || a.innerText;
+      if (txtValue.toUpperCase().indexOf(filter) > -1) {
+        li[i].style.display = "";
+      } else {
+        li[i].style.display = "none";
+      }
+    }
+}
+
+function fnModalSearch() {
+  // Declare variables
+  var input, filter, ul, li, a, i, txtValue;
+  input = document.getElementById('modal_search_bar_value');
+  filter = input.value.toUpperCase();
+  ul = document.getElementsByClassName("modal_inbox_chat")[0];
+  li = ul.getElementsByClassName('modal_chat_list');
+
+  // Loop through all list items, and hide those who don't match the search query
+  for (i = 0; i < li.length; i++) {
+    a = li[i].getElementsByTagName("h5")[0];
+    txtValue = a.textContent || a.innerText;
+    if (txtValue.toUpperCase().indexOf(filter) > -1) {
+      li[i].style.display = "";
+    } else {
+      li[i].style.display = "none";
+    }
+  }
+}
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.11/handlebars.min.js"></script>
+
+
+<script id="broadcast_msg_template" type="text/x-handlebars-template">
+  <div class="broadcast_msg">
+      <div class="received_broad_msg">
+          <div class="received_broad_withd_msg">
+            <p>{% raw -%}{{ post }}{%- endraw %}
+              <span class="received_broad_time_date"> {% raw -%} {{ post_info }} {%- endraw %}  </span>
+            </p>
+          </div>
+      </div>
+  </div>
+</script>
+
+<script id="in_msg_template" type="text/x-handlebars-template">
+    <div class="incoming_msg" id="{% raw -%} {{ post_id }} {%- endraw %}">
+      <div class="incoming_msg_img"> <img src="/static/img/user/{% raw -%}{{ post_image }}{%- endraw %}.png"> </div>
+        <div class="received_msg">
+            <div class="received_withd_msg">
+            <span class="author"><a href="#" name="message_id" value="{% raw -%} {{ post_id }} {%- endraw %}"> {% raw -%} {{ post_user }} {%- endraw %} </a></span> 
+            <input type="hidden" id="message_id_{% raw -%}{{ post_id }}{%- endraw %}" value="{% raw -%}{{ post_id }}{%- endraw %}">
+            <p>{% raw -%}{{ post }}{%- endraw %}</p>
+            <span class="time_date"> {% raw -%} {{ post_info }} {%- endraw %}  </span>
+        </div>
+      </div>
+    </div>
+ </script>
+ <script id="out_msg_template" type="text/x-handlebars-template">
+    <div class="outgoing_msg">
+        <div class="sent_msg">
+            <p>{% raw -%}{{ post }}{%- endraw %}</p>
+            <input type="hidden" id="message_id_{% raw -%}{{ post_id }}{%- endraw %}" value="{% raw -%}{{ post_id }}{%- endraw %}">
+            <button type="button" class="btn btn-primary" id="new-channel" data-toggle="modal" data-target="#myNewChannelModal">  New <i class="fa fa-plus" aria-hidden="true"></i> </button>
+            <span class="time_date"> {% raw -%} {{ post_info }} {%- endraw %} </span> 
+        </div>
+    </div>        
+ </script>
+ <script id="join_chn_template" type="text/x-handlebars-template">
+    <div class="chat_list" id="{% raw -%}{{ channel }}{%- endraw %}">             
+      <div class="chat_people">
+        <div class="chat_img"> 
+            <img id="{% raw -%}{{ channel }}{%- endraw %}_img" src="{% raw -%}{{ channel_image }}{%- endraw %}" alt="{% raw -%}{{ channel_label }}{%- endraw %}"> 
+        </div>
+        <div class="chat_ib">
+            <h5 id="{% raw -%}{{ channel }}{%- endraw %}_name">{% raw -%}{{ channel_label }}{%- endraw %}</h5>
+         </div>
+      </div>
+    </div>
+</script>
+<script id="modal_join_chn_template" type="text/x-handlebars-template">
+  <div class="modal_chat_list" id="{% raw -%}{{ channel }}{%- endraw %}">             
+    <div class="chat_people">
+      <div class="chat_img"> 
+          <img id="{% raw -%}{{ channel }}{%- endraw %}_img" src="{% raw -%}{{ channel_image }}{%- endraw %}" alt="{% raw -%}{{ channel_label }}{%- endraw %}"> 
+      </div>
+      <div class="chat_ib">
+          <h5 id="{% raw -%}{{ channel }}{%- endraw %}_name">{% raw -%}{{ channel_label }}{%- endraw %}</h5>
+          <input type="hidden" name="join_room" id="join_room_{% raw -%}{{ channel }}{%- endraw %}" value="{% raw -%}{{ channel }}{%- endraw %}">
+          <input type="submit" class="btn btn-success" name="join_room" id="btn_join_room_{% raw -%}{{ channel }}{%- endraw %}" value="Join">
+      </div>
+    </div>
+  </div>
+</script>
+ <!------ Include the above in your HEAD tag ---------->
+
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css" type="text/css" rel="stylesheet">
+<link rel="stylesheet" href="{{url_for('static', filename='css/chat.css')}}">
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+</head>
+<body>
+
+ <!-- Modal -->
+<div id="myJoinChannelModal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal Join content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Join Channel</h4>
+      </div>
+      <div class="modal-body">
+          <div>
+            <span class="input-group-addon">
+              <input type="text" class="search_bar" onkeyup="fnModalSearch()" id="modal_search_bar_value" placeholder="Search" >
+              <button type="button" class="btn-info"> <i class="fa fa-search" aria-hidden="true"></i> </button>
+            </span> 
+          <form id="join" method="POST" action='#'>
+          <div class="modal_inbox_chat" id="modal_inbox_chat">
+            {%if list_channel%}
+                {%for item in list_channel %}
+                  {%if item.public == True %}
+                         <div class="modal_chat_list" id="{{item.id}}">
+                            <div class="chat_people">
+                            <div class="chat_img"> <img id="{{item.id}}_img" src="/static/img/user/{{item.image}}.png" alt="{{item.name}}"> </div>
+                            <div class="chat_ib">
+                                <h5 id="{{item.id}}_name"> {{item.name}}</h5>
+                                <input type="hidden" name="join_room" id="join_room_{{item.id}}" value="{{item.id}}">
+                                <input type="submit" class="btn btn-success" name="join_room" id="btn_join_room_{{item.id}}" value="Join">
+                            </div>
+                            </div>
+                        </div>
+                    {%endif%}
+                 {% endfor%}
+             {%endif%}  
+              <!-- {%if list_user%}
+               {%for item in list_user %}
+                {%if item.name != nickname %}
+                       <div class="modal_chat_list" id="{{item.id}}">
+                          <div class="chat_people">
+                          <div class="chat_img"> <img id="{{item.id}}_img" src="/static/img/user/{{item.image}}.png" alt="{{item.name}}"> </div>
+                          <div class="chat_ib">
+                              <h5 id="{{item.id}}_name"> {{item.name}}</h5>
+                              <input type="hidden" name="join_room" id="join_room_{{item.id}}" value="{{item.id}}">
+                              <input type="submit" class="btn btn-success" name="join_room" id="btn_join_room_{{item.id}}" value="Join">
+                          </div>
+                          </div>
+                      </div>
+                  {%endif%}
+               {% endfor%} -->
+              </div> <!--modal-inbox_chat-->
+              </form>    
+            <!-- {%endif%}  -->
+              </div>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="modal_join_close" class="btn-info btn-close" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+<!--end Join modal-->
+
+ <!-- Modal -->
+  <div id="myNewChannelModal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+  <!-- Modal new content-->
+  <div class="modal-content">
+    <div class="modal-header">
+      <h4 class="modal-title">New Channel</h4>
+    </div> <!--header-->
+    <div class="modal-body">
+      <div class="modal_inbox_chat sm">
+          <div>
+              <form id="create" method="POST" action='#'>
+                  <input type="text" name="create_room" id="create_room" alt="Type your new conversation name" required>
+                  <input type="submit" class="btn btn-success" name="btn_create_room" id="btn_create_room" value="Create">
+              </form>   
+          </div> 
+      </div> <!--modal-inbox_chat-->
+    <div class="modal-footer">
+      <button type="button" id="modal_new_close" class="btn-info btn-close" data-dismiss="modal">Close</button>
+    </div> <!--footer-->
+
+    </div> <!--body-->
+  </div> <!--content-->
+  </div> <!--modal-dialog-->
+  </div>
+<!--end New modal-->
+
+
+<div class="container">
+  <h3 class=" text-center">Messaging</h3>
+  <h4 class=" text-center">Hello {{nickname}}.</h4>
+  <input type="hidden" id="nickname" value="{{nickname}}">
+  <div class="messaging">
+      <div class="inbox_msg">
+        <div class="inbox_people">
+          <div class="headind_srch">
+            <div class="recent_heading">
+              <h4>Recent</h4>
+            </div>
+            <div class="srch_bar">
+              <div class="stylish-input-group">
+                <button type="button" class="btn btn-primary" id="new-channel" data-toggle="modal" data-target="#myNewChannelModal">  New <i class="fa fa-plus" aria-hidden="true"></i> </button>
+                <button type="button" class="btn btn-success" id="add-channel" data-toggle="modal" data-target="#myJoinChannelModal">  Join <i class="fa fa-plus" aria-hidden="true"></i> </button>
+
+                <span class="input-group-addon">
+                  <input type="text" class="search_bar" onkeyup="fnSearch()" id="search_bar_value" placeholder="Search" >
+                  <button type="button" class="btn-info"> <i class="fa fa-search" aria-hidden="true"></i> </button>
+                </span> 
+              </div>
+            </div>
+          </div>
+          <div class="inbox_chat" id="inbox_chat">
+
+            {%if list_usr_channel%}
+                {%for item in list_usr_channel %}
+                           
+                           <div class="chat_list" id="{{item.id}}">
+                              <div class="chat_people">
+                              <div class="chat_img"> <img id="{{item.id}}_img" src="/static/img/user/{{item.image}}.png" alt="{{item.name}}"> </div>
+                              <div class="chat_ib">
+                                  <h5 id="{{item.id}}_name">{{item.name}} </h5> 
+                              </div>
+                              </div>
+                          </div>
+                 {% endfor%}
+          {%endif%}  
+
+          </div> <!-- inbox_chat -->
+        </div>
+
+        
+        <div class="msgs_top" id="msgs_top">
+          <img class="msg_top_img" id="msgs_top_img"> 
+          <h4 id="msgs_top_label"></h4>
+            <form id="leave" method="POST" action='#'>
+              <input type="hidden" name="btn_leave_room_value" id="btn_leave_room_value">
+              <button type="submit" class="btn btn-danger" name="btn_leave_room" id="btn_leave_room" value="Leave" > Leave </button>
+          </form>
+        </div>
+ 
+
+        <div class="msgs" id="msgs">
+          <div class="msg_history" id="msg_history_0"></div>
+          {%if list_usr_channel%}   
+
+            {%for item in list_usr_channel %}  
+   
+                <div class="msg_history" id="msg_history_{{item.id}}">
+                    <!-- chat.js put content here -->
+                </div>
+            {% endfor%}
+          {%endif%} 
+
+            
+            <div class="type_msg">
+                <div class="input_msg_write">
+                    <form id="send_room" method="POST" action='#'>
+                        <input type="text" name="room_data" id="room_data" class="write_msg" placeholder="Type a message" required autocomplete="off"/>
+                        <input type="hidden" name="room_name" id="room_name">
+                        <button class="msg_send_btn" type="submit"><i class="fa fa-paper-plane-o" aria-hidden="true"></i></button>
+                    </form>
+                </div>
+            </div>
+        </div> <!--mesgs-->
+
+      </div> <!--inbox_msg-->
+      
+      <div>
+        <h4>Log</h4>
+      <div class="msg_log" id="log"></div>
+    </div>
+  </div> <!--messaging-->
+</div> <!--container-->
+  
+{% endblock %}  

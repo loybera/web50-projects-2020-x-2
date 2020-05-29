@@ -1,0 +1,27 @@
+{% extends "layout.htm" %}
+{% block title %}Error{% endblock %}
+{% block head %}
+  {{ super() }}
+ 
+{% endblock %}
+{% block body %}
+
+
+    <div class="container">
+      <div class="row">
+     
+
+         <div class="col-md-12">
+            {% if error == '404' %}
+                <br>
+                <font size="3" color="red"><h4 id="error">PAGE NOT FOUND</h4></font>
+            {% endif %}
+         </div>
+        <div class="col-md-12" align="center">
+
+    </div>
+</div>
+
+</div>    
+ 
+{% endblock %}
