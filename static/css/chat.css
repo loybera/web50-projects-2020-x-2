@@ -1,3 +1,7 @@
+.body_msg {
+  background: #f7f8e9;
+}
+
 .container {
   max-width: 1170px;
   margin: auto;
@@ -23,6 +27,19 @@ img {
 
 .top_spac {
   margin: 20px 0 0;
+}
+
+.chat_header img {
+  float: left;
+  width: 35%;
+}
+
+.chat_header h3 {
+  float: left;
+}
+
+.chat_header h4 {
+  float: left;
 }
 
 .recent_heading {
@@ -199,6 +216,17 @@ img {
   width: 57%;
 }
 
+.received_msg_user p {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.received_msg_user p:hover {
+  color: #c90d0d;
+  font-size: 14px;
+  text-decoration: underline;
+}
+
 .msgs_top {
   height: 80px;
   flex: none;
@@ -223,6 +251,7 @@ img {
   float: left;
   padding: 30px 15px 0 25px;
   width: 60%;
+  background: #f8f8f8;
 }
 
 .sent_msg p {
@@ -243,6 +272,11 @@ img {
 .sent_msg {
   float: right;
   width: 46%;
+}
+
+.send_msg_user {
+  font-size: 14px;
+  font-weight: bold;
 }
 
 .input_msg_write input {

@@ -1,4 +1,5 @@
 import datetime
+import re
 from datetime import date
 from flask_socketio import SocketIO, Namespace, emit, send, join_room, leave_room, close_room, rooms, disconnect
 from model import *
@@ -31,32 +32,41 @@ list_user = set()
 list_messages = []
 list_channeluser = []
 
+forbbiden_usernames = ['admin', 'administrator', 'root']
 
-def validateUser(nickname):
-    print(f"Validate {nickname}")
+def validateUser(username):
+    print(f"Validate {username}")
 
-    if (len(list_user)>0):
-        for item in list_user:
-            if (item.name == nickname):
-                if (item.active == True):
-                    print("Nickname already connected")
-                    return False
-            
-    print("Nickname valid")
-    return True
+    result = True
+
+    if (forbbiden_usernames.count(username.lower())>0):
+        result = "username reserved, please choose another"
+    else:
+        if (len(list_user)>0):
+            for item in list_user:
+                if (item.id == username):
+                    if (item.active == True):
+                        result = "username already connected, please choose another"
+                    
+    print (result)
+    return result
 
 # add channel number to channel list of user connected
-def addChannelToUser(channel, nickname):
+def addChannelToUser(username, channel, channel_label,  channel_type, user_to, user_from):
 
-    print(f"--Add channel {channel} to user {nickname} --")
+    print(f"--Add channel {channel} to user {username} --")
+    if (channel_type=='PRIVATE'):
+        image= getChannelImage(user_to, channel_type)
+    else:
+        image = getChannelImage(channel, channel_type)
 
-    newChannel = ChannelUser(channel, getChannelLabel(channel), getChannelImage(channel))
+    newChannel = ChannelUser(channel, channel_label, image, channel_type, user_to, user_from)
     print(newChannel)
     userInChannel = False
 
     if (len(list_user)>0):
         for item in list_user:
-            if (item.name == nickname):
+            if (item.id == username):
                 # validate if channel exists in user list's
                 for chn in item.channels:
                     if (chn.id == channel):
@@ -65,50 +75,54 @@ def addChannelToUser(channel, nickname):
                 if (userInChannel == False):
                     item.add_channel(newChannel)
                 # user and channels
-                print(item.name, item.channels)
+                print(item.id, item.channels)
     else:
-        print(f"Error....Add user {nickname}")
-        addUser(nickname)
+        print(f"Error....Add user {username}")
+        addUser(username)
 
 
 
     # TODO: may be must to save json
     session['users'] = list_user
 
-def addUser(nickname):
+def addUser(username, username_label):
     createUser=True
-    usr = User(nickname)
+    usr = User(username, username_label)
     for item in list_user:
-        if (item.name == nickname):
+        if (item.id == username.lower()):
             createUser = False
             item.active = True
+            return item
 
     if (createUser):
         list_user.add(usr)
         print(repr(usr))
 
-def addChannel(channel, name, owner, public):
+    return usr
+
+def addChannel(channel, name, owner, channel_type):
     createChannel  = True
-    chn = Channel(channel, name, owner, public)
+    chn = Channel(channel, name, owner, channel_type)
     for item in list_channel:
-        if (item.id == channel):
+        if (item.id == channel.lower()):
             createChannel = False
+            break
 
     if (createChannel):
         list_channel.add(chn)
         chn.print_info()
 
 
-def removeChannelFromUser(channel, nickname):
-    print(f"--Remove channel  {channel} from user {nickname} --")
+def removeChannelFromUser(channel, username):
+    print(f"--Remove channel  {channel} from user {username} --")
 
     # remove user from channel list
     if (len(list_channel)>0):
         for item in list_channel:
-            if (item.id == channel):
-                if (item.users.count(nickname)>0):
-                    item.users.remove(nickname)
-                    print(f"Remove user  {nickname} from channel list {channel}" )
+            if (item.id == channel.lower()):
+                if (item.users.count(username)>0):
+                    item.users.remove(username)
+                    print(f"Remove user  {username} from channel list {channel}" )
                     pass
                 item.print_info()
 
@@ -118,18 +132,18 @@ def removeChannelFromUser(channel, nickname):
     # remove channel from user list
     if (len(list_user)>0):
         for item in list_user:
-            if (item.name == nickname):
+            if (item.id == username.lower()):
                 # validate if channel exists in user list's
                 for chn in item.channels:
-                    if (chn.id == channel):
+                    if (chn.id == channel.lower()):
                         item.channels.remove(chn)
-                        print(f"Remove channel {channel} from user list {nickname}" )
+                        print(f"Remove channel {channel} from user list {username}" )
 
  
-                print(item.name, item.channels)
+                print(item.id, item.channels)
     else:
-        print(f"Error....removing channel from user {nickname}")
-        addUser(nickname)
+        print(f"Error....removing channel from user {username}")
+        addUser(username)
 
     #update sessions variables
     session['channels'] = list_channel
@@ -137,56 +151,58 @@ def removeChannelFromUser(channel, nickname):
 
 
 
-def addUserToChannel(channel, nickname):
-    print(f"--Add user {nickname} to channel {channel}--")
+def addUserToChannel(channel, username):
+    print(f"--Add user {username} to channel {channel}--")
 
     # add user to list_user of channel element
-    user=nickname
+    user=username
 
     if (len(list_channel)>0):
         for item in list_channel:
-            if (item.id == channel):
+            if (item.id == channel.lower()):
                 print(f"Add user {user} to channel {channel}")
                 if (item.users.count(user)==0):
                     item.add_user(user)
-                    pass
+
                 item.print_info()
+                break
     else:
         print("Error, channel list doesnt exists")
 
     session['channels'] = list_channel
 
-def addMessageToChannel(channel, user, image, time, msg):
+def addMessageToChannel(channel, user_from, user_to, image, time, msg):
     print(f"--add msg {msg} to channel {channel}--")
 
-    msg = Message(user_from= user, user_to= channel, time= getDay(time), post= msg, user_from_img= image)
+    msg = Message(channel=channel, user_from= user_from, user_to= user_to,  time= getDay(time), post= msg, user_from_img= image)
     # backup users messages
     list_messages.append(repr(msg))
 
     # Don't keep the broadcast messages at channel
-    if (user.upper() !='ADMIN'):
+    if (user_from.lower() !='admin'):
         for item in list_channel:
-            if (item.id == channel):
-                if (len(item.messages)>9):
+            if (item.id == channel.lower()):
+                if (len(item.messages)>99):
                     print("remove first message")
                     # remove first message to put the new message (max 100 per channel)
                     item.messages.pop(0)
                 # put new message in channel 
                 item.add_message(msg)
                 print(item.print_info())
+                break
 
     return msg
 
-def validateUserBychannel(nickname, channel):
-    print(f"--Validate {nickname} in {channel}--")
+def validateUserBychannel(username, channel):
+    print(f"--Validate {username} in {channel}--")
 
     if (len(list_channel)>0):
         for item in list_channel:
-            if (item.id == channel):
+            if (item.id == channel.lower()):
                 if (len(item.users)>0):
                     item.print_info()
                     for item2 in item.users:
-                        if (item2.name == nickname):
+                        if (item2.id == username.lower()):
                             print("not valid")
                             return False
     
@@ -194,25 +210,34 @@ def validateUserBychannel(nickname, channel):
     return True
 
 def getChannelLabel(channel):
-    if (len(list_channel)>0):
-        for item in list_channel:
-            if (item.id == channel):
-                return item.name
-    return None
 
-def getChannelImage(channel):
     if (len(list_channel)>0):
         for item in list_channel:
-            if (item.id == channel):
-                return item.image
+            if (item.id == channel.lower()):
+                return item.name
+
+    # default the channel
+    return channel
+
+def getChannelImage(channel, channel_type):
+    if (channel_type == 'PUBLIC'):
+        if (len(list_channel)>0):
+            for item in list_channel:
+                if (item.id == channel.lower()):
+                    return item.image
+    else:
+        if (len(list_user)>0):
+            for item in list_user:
+                if (item.id == channel.lower()):
+                    return item.image
     
-    return 'user-profile'
+    return 'new-channel'
 
 def getMessagesByChannel(channel):
     
     if (len(list_channel)>0):
         for item in list_channel:
-            if (item.id == channel):
+            if (item.id == channel.lower()):
                 return item.messages
     
     return None
@@ -222,38 +247,67 @@ def getUsersByChannel(channel):
     
     if (len(list_channel)>0):
         for item in list_channel:
-            if (item.id == channel):
+            if (item.id == channel.lower()):
                 return item.users
     
     return None
 
-def getChannelsByUser(nickname):
+def getChannelsByUser(username):
     listResult = []
     if (len(list_user)>0):
         for item in list_user:
-            if (item.name == nickname):
-                print(f"load channels {item.channels} for user {nickname}")
+            if (item.id == username.lower()):
+                print(f"load channels {item.channels} for user {username}")
                 if (len(item.channels)>0):
                     for chn in item.channels:
                         listResult.append(chn)
     
     return listResult
 
-def getUserImage(nickname):
+
+def findChannel(channel, user_to, user_from):
+
+    separator = "-to-"
+    channelusers = channel.split(separator)
+    
+    if (len(channelusers)>1):
+        if (len(list_channel)>0):
+            for item in list_channel:
+                if (item.channel_type == 'PRIVATE'):
+                    if (item.name == channelusers[0]+separator+channelusers[1]):
+                        return item.name
+                    if (item.name == channelusers[1]+separator+channelusers[0]):
+                        return item.name
+
+    # if dont find channel return the input
+    return channel        
+
+def getUserImage(username):
 
     if (len(list_user)>0):
      for item in list_user:
-            if (item.name == nickname):
-                print(f"load image {item.image} for user {nickname}")
+            if (item.id == username.lower()):
+                print(f"load image {item.image} for user {username}")
                 return item.image
 
     return 'user-profile'
 
-                        
+def leaveRoomByUser(username):
+
+    list_channeluser = getChannelsByUser(username)
+    print(f"list channels to leave {list_channel}")
+
+    for item in list_channeluser:
+        print(f"leave channel {item.id}")
+        leave_room(item.id)
+        print(f"remove channel {item.id}")
+        removeChannelFromUser(item.id, username)
+
+
 def login_required(f):
     @wraps(f)
     def decorated_funtion(*args, **kwargs):
-        if 'nickname' not in session:
+        if 'username' not in session:
             return redirect(url_for('login'))
         return f(*args, **kwargs)
     return decorated_funtion
@@ -268,19 +322,25 @@ def login():
             return render_template('login.htm', messages=list_messages, channels = list_channel)
         else:
             if request.method == 'POST':
-                nickname = request.form['form-nickname']
-                nickname = nickname.title()
-
-                if (validateUser(nickname)):                
-                    addUser(nickname)
+                
+                username_label = request.form['form-username']
+                print(username_label)
+                username = re.sub('[^A-Za-z0-9]', '', username_label).lower()
+                print(username + " "+ username_label)
+                result = validateUser(username)
+                if (result == True):                
+                    user= addUser(username, username_label)
                     # TODO: push user to clients
                 else:
-                    return render_template('login.htm', errorAlert="Nickname already loged",   nickname= nickname)
+                    return render_template('login.htm', errorAlert= result,   username= username)
  
  
                 session.permanent = True
                 session['dateLogin'] = datetime.datetime.today().replace(microsecond=0)
-                session['nickname'] = nickname
+                session['username'] = user.id
+                session['username_label'] = user.name
+                session['username_image'] = user.image
+
                 session['today'] = datetime.datetime.today().replace(microsecond=0)
                 
                 now = datetime.datetime.today().replace(microsecond=0)
@@ -296,17 +356,21 @@ def login():
 def logout():
     
     # delete the session variables
-    if ('nickname' in session):
-        nickname= session['nickname']
-        del session ['nickname'] 
+    if ('username' in session):
+        username= session['username']
+        # leaveRoomByUser(username)
+        # MyNamespace.on_disconnect_request()
+        # print("inactive user " + username)
 
-        print("inactive user " + nickname)
+        del session ['username'] 
+        del session ['username_label'] 
+
         try:
             if (len(list_user)>0):
                 for item in list_user:
-                    if (item.name == nickname):
+                    if (item.id == username):
                         item.active = False
-                        print(f"logout channel: {item.channels}")
+                        print(f"logout user: {item.name}")
         except:
             print("error to inactive user from user list")
 
@@ -333,17 +397,17 @@ def chat():
     # iniatilize defaults channels 
     print(f"N° Channels: {len(list_channel)}")
     if (len(list_channel) == 0):
-        addChannel(channel="things", name="Things", owner="Admin", public=True)
-        addChannel(channel="otherthings", name="Other Things", owner="Admin", public=True)
-        addChannel(channel="barfriends", name="Bar Friends", owner="Admin", public=True)
-        addChannel(channel="soccermondays", name="Soccer Mondays", owner="Admin", public=True)
-        addChannel(channel="university", name="University", owner="Admin", public=True)
-        addChannel(channel="cs50pythoncourse", name="Cs50 Python course", owner="Admin", public=True)
+        addChannel(channel="things", name="Things", owner="Admin", channel_type='PUBLIC')
+        addChannel(channel="otherthings", name="Other Things", owner="Admin", channel_type='PUBLIC')
+        addChannel(channel="barfriends", name="Bar Friends", owner="Admin", channel_type='PUBLIC')
+        addChannel(channel="soccermondays", name="Soccer Mondays", owner="Admin", channel_type='PUBLIC')
+        addChannel(channel="university", name="University", owner="Admin", channel_type='PUBLIC')
+        addChannel(channel="cs50pythoncourse", name="Cs50 Python course", owner="Admin", channel_type='PUBLIC')
 
     print(f"N° Channels: {len(list_channel)}")
     print(list_channel)
-    nickname = session['nickname']
-    list_channeluser = getChannelsByUser(nickname)
+    username = session['username']
+    list_channeluser = getChannelsByUser(username)
     print(f"list channels {list_channel}")
 
     list_channel2 = list_channel.copy()
@@ -359,7 +423,7 @@ def chat():
     print(f"list user {list_user}")
     print(f"list canales user {list_channeluser}")
 
-    return render_template('chat.htm',  nickname=session['nickname'],  list_usr_channel=list_channeluser, list_channel=list_channel2, list_user=list_user)
+    return render_template('chat.htm',  username=session['username'], username_label=session['username_label'], username_image=session['username_image'], list_usr_channel=list_channeluser, list_channel=list_channel2, list_user=list_user)
 
 
 @app.route('/')
@@ -367,7 +431,7 @@ def home():
 
    
 
-    if ('nickname' not in session):
+    if ('username' not in session):
         return redirect(url_for('login'))
     else:
         return redirect(url_for('chat'))
@@ -396,10 +460,15 @@ def background_thread():
                       namespace='/project2')
 
 class MyNamespace(Namespace):
+
     def on_my_event(self, message):
         session['receive_count'] = session.get('receive_count', 0) + 1
-    
-        msg = f"{datetime.datetime.today().replace(microsecond=0)} {session['nickname']}: {message['data']}"
+        try:
+            username = session['username']
+        except:
+            username = 'not logued'
+
+        msg = f"{datetime.datetime.today().replace(microsecond=0)} {username}: {message['data']}"
         message['data'] = msg
 
         emit('my_response',
@@ -408,7 +477,7 @@ class MyNamespace(Namespace):
     def on_my_broadcast_event(self, message):
         session['receive_count'] = session.get('receive_count', 0) + 1
 
-        msg = f"{datetime.datetime.today().replace(microsecond=0)}  {session['nickname']}: {message['data']}"
+        msg = f"{datetime.datetime.today().replace(microsecond=0)}  {session['username']}: {message['data']}"
         message['data'] = msg
 
         emit('my_response',
@@ -417,22 +486,23 @@ class MyNamespace(Namespace):
 
     def on_join(self, message):
 
+        username = session['username']
         room = message['room']
-        session['channel'] = room
-        nickname = session['nickname']
+        room_type = message['room_type']
+        create_room = False
         try:
             create_room = message['create_room']
+            room_type = message['room_type']
             if (create_room):
-                addChannel(room, message['data'], nickname, True)
-                # TODO: push channel to clients
+                addChannel(room, message['data'], username, room_type)
         except:
             print("room already existing, just join it")
 
-        print(f"Join Room: {message['room']} User: {session['nickname']}")        
+        print(f"Join Room: {message['room']} User: {session['username']}")        
         # add user connected to channel list
-        addUserToChannel(room, nickname)
+        addUserToChannel(room, username)
         # add channel to user profile for next login
-        addChannelToUser(room, nickname)
+        addChannelToUser(username=username, channel=room, channel_label=getChannelLabel(room), channel_type=room_type, user_to= room, user_from = username)
 
         # join user to room  
         join_room(message['room'])
@@ -443,15 +513,73 @@ class MyNamespace(Namespace):
         print (f"list msg channel: {channel_msg_list}")
 
         emit('my_response',
-             {'data': nickname + ' has entered' + ' , '.join(rooms()),
+             {'data': username + ' has entered ' + ' , '.join(rooms()),
               'room': room, 'messages': channel_msg_list,'count': session['receive_count']})
         
- 
+    def on_join_user(self, message):
+        
+        username = session['username']
+        room = message['room']
+        room_type = message['room_type']
+        try:
+            user_from = message['user_from']
+            user_to = message['user_to']
+        except:
+            chn = getChannel(room)
+            if (chn == None):
+                print(f"Error, channel {room} not exists or there is inconsistent")
+                return False
+            else:
+                if (chn.channel_type =='PRIVATE' and len(chn.users)==2):
+                    user_from = chn.users[0].id
+                    user_to = chn.user[1].id
+                else:
+                    print(f"Error, channel {room} not exists or there are not users inside")
+                    return False     
+
+        create_room = False
+        try:
+            create_room = message['create_room']
+        except:
+            print("warning: room already existing, just join it")
+        try:
+            room_type = message['room_type']
+        except:
+            print("warning: room private withot parameter")
+
+        channel = findChannel(room, user_to, user_from)
+
+        if (create_room):
+            addChannel(channel, room, 'Single_Chat', room_type)
+            # TODO: push channel to clients or don't create private room in channel list
+
+        print(f"Join user: {message['room']} User: {session['username']}")        
+        # add user connected to channel list
+        addUserToChannel(channel, user_from)
+        # add channel to user profile for next login
+        addChannelToUser(username=user_from, channel=channel, channel_label=user_to, channel_type=room_type, user_to= user_to, user_from = user_from)
+
+        # do the same with the other user
+        addUserToChannel(channel, user_to)
+        addChannelToUser(username=user_to, channel=channel, channel_label=user_from, channel_type=room_type, user_to= user_from, user_from = user_to)
+
+        # join user to room  
+        join_room(channel)
+        session['receive_count'] = session.get('receive_count', 0) + 1
+        
+        # get message list from channel to send html client
+        channel_msg_list = getMessagesByChannel(channel)
+        print (f"list msg channel: {channel_msg_list}")
+
+        emit('my_response_user',
+             {'data': user_from + ' has joined with ' +  user_to +' , '.join(rooms()),
+              'room': channel, 'original_room': room , 'user_from': user_from, 'user_to':user_to, 'messages': channel_msg_list,'count': session['receive_count']})
+      
     def on_leave(self, message):
 
-        nickname = session['nickname']
+        username = session['username']
         room = message['room']
-        removeChannelFromUser(room, nickname)
+        removeChannelFromUser(room, username)
         
         leave_room(message['room'])
         session['receive_count'] = session.get('receive_count', 0) + 1
@@ -472,22 +600,49 @@ class MyNamespace(Namespace):
         time = datetime.datetime.now()
         # message['data'] = msg
         room = message['room']
-        user = message['user']
-        print("user:"+ user)
+        user_from = message['user_from']
+        user_to = message['user_to']
+        print("user:"+ user_from)
         
-        msg = addMessageToChannel(room, user, getUserImage(user), time, message['data'])         
+        msg = addMessageToChannel(room, user_from, user_to, getUserImage(user_from), time, message['data'])         
 
         session['receive_count'] = session.get('receive_count', 0) + 1
         emit('my_room',
-            {'data': message['data'], 'user': msg.user_from, 'user_image': msg.user_from_img, 'time': msg.time, 'count': session['receive_count'], 'id': msg.id },
-            room=message['room'], user= user)
+            {'data': message['data'], 'user_from': msg.user_from, 'user_to': msg.user_to, 'user_image': msg.user_from_img, 'time': msg.time, 'count': session['receive_count'], 'id': msg.id },
+            room=message['room'], user= user_from)
 
+    def on_my_room_event_user(self, message):
+        
+        time = datetime.datetime.now()
+        # message['data'] = msg
+        room = message['room']
+        user_from = message['user_from']
+        user_to = message['user_to']
+        print("user:"+ user_from)
+        
+        user_image = getUserImage(user_from)
+        msg = addMessageToChannel(room, user_from, user_to, user_image, time, message['data'])         
 
+        session['receive_count'] = session.get('receive_count', 0) + 1
+        
+        emit('my_room',
+            {'data': message['data'], 'user_from': msg.user_from, 'user_to': msg.user_to, 'user_image': msg.user_from_img, 'time': msg.time, 'count': session['receive_count'], 'id': msg.id },
+            room=message['room'], user= user_from)
+
+        # broadcasto to clients to push user_to
+        emit('my_join_user',
+             {'data': 'Msg for you!','room': room, 'user_to': user_to, 'user_from': user_from, 'user_image': user_image },
+             broadcast=True)
+             
     def on_disconnect_request(self):
         session['receive_count'] = session.get('receive_count', 0) + 1
         emit('my_response',
              {'data': 'Disconnected!', 'count': session['receive_count']})
         disconnect()
+
+        username= session['username']
+        leaveRoomByUser(username)
+        
 
     def on_my_ping(self):
         emit('my_pong')

@@ -1,4 +1,6 @@
+$bg_body: #f7f8e9;
 $bg_channels: #f8f8f8;
+$bg_msgs: #f8f8f8;
 $channels_borders: #c4c4c4;
 $bg_msg_header: #f8f8f8;
 $chat_h5: #464646;
@@ -13,6 +15,9 @@ $bg_msg_sent: #59657d;
 $bg_send_btn: #05728f;
 $heading_h4: #05728f;
 
+.body_msg {
+  background: $bg_body;
+}
 .container{max-width:1170px; margin:auto;}
 img{ max-width:100%;}
 .inbox_people {
@@ -27,6 +32,17 @@ img{ max-width:100%;}
   overflow: hidden;
 }
 .top_spac{ margin: 20px 0 0;}
+
+.chat_header img {
+    float: left;
+    width: 35%;
+ }
+ .chat_header h3 {
+  float: left;
+}
+.chat_header h4 {
+  float: left;
+}
 
 
 .recent_heading {float: left; width:40%;}
@@ -133,6 +149,7 @@ img{ max-width:100%;}
   padding: 5px 10px 5px 12px;
   width: 100%;
 }
+
 .time_date {
   color: #747474;
   display: block;
@@ -141,6 +158,20 @@ img{ max-width:100%;}
 }
 .received_withd_msg { width: 57%;}
 
+.received_msg_user p {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.received_msg_user p:hover {
+ 
+  color: #c90d0d;  
+  font-size: 14px;
+  text-decoration: underline;
+    // margin: 0;
+  // padding: 5px 10px 5px 12px;
+  // width: 100%;
+}
 .msgs_top {
   height: 80px;
   flex: none;
@@ -162,6 +193,8 @@ img{ max-width:100%;}
   float: left;
   padding: 30px 15px 0 25px;
   width: 60%;
+  background: $bg_msgs;  
+
 }
 
  .sent_msg p {
@@ -177,6 +210,11 @@ img{ max-width:100%;}
   float: right;
   width: 46%;
 }
+.send_msg_user {
+  font-size: 14px;
+  font-weight: bold;
+}
+
 .input_msg_write input {
   background: rgba(0, 0, 0, 0) none repeat scroll 0 0;
   border: medium none;
