@@ -63,8 +63,9 @@ $(document).ready(function() {
     });
 
   
-    $('div.msg_history').on("click", "a.message_id", function(){
+    $('div.received_withd_msg').on("click", "btn-info author", function(){
         var msg_id = $(this).attr('id');
+        // var channel = $(''author
         var channel_label = $('h5#'+channel+'_name').text() 
         var channel_image = $('img#'+channel+'_img').attr('src');
 
@@ -102,10 +103,10 @@ $(document).ready(function() {
     }
     // Add a new post with given contents to DOM.
     const in_msg_template = Handlebars.compile(document.querySelector('#in_msg_template').innerHTML);
-    function add_in_msg(channel, post, post_info, post_image, post_id) {
+    function add_in_msg(channel, post, post_user, post_info, post_image, post_id) {
 
         // Create new post.
-        const msg = in_msg_template({'post': post, 'post_info': post_info, 'post_image': post_image, 'post_id': post_id});
+        const msg = in_msg_template({'post': post, 'post_user': post_user, 'post_info': post_info, 'post_image': post_image, 'post_id': post_id});
 
         // Add post to DOM.
         var divId = 'msg_history_'+channel;
@@ -174,7 +175,7 @@ $(document).ready(function() {
             if (msg.user.toUpperCase()=='ADMIN'){
                     add_broadcast_msg(channel=channel, post=msg.data, post_info=msg.time);
             } else {    
-                add_in_msg(channel=channel, post=msg.data,  post_info=msg.user_from.toUpperCase() + ' | '+ msg.time, post_image=msg.user_from_img, post_id=msg.id);
+                add_in_msg(channel=channel, post=msg.data, post_user= msg.user.toUpperCase(),  post_info=  msg.time, post_image=msg.user_image, post_id=msg.id);
             }
         }
         // $('#msgs_'+channel).append('<li>' + $('<div/>').text(   msg .data ).html());
@@ -201,13 +202,13 @@ $(document).ready(function() {
             console.log(json_msg);
 
             // add_in_msg(msg.messages[i], 'User' + ' | '+ 'Fecha Hora');
-            if (json_msg.user.toUpperCase()==$('#nickname').val().toUpperCase()){
+            if (json_msg.user_from.toUpperCase()==$('#nickname').val().toUpperCase()){
                 add_out_msg(channel=msg.room, post=json_msg.post, post_info=json_msg.user_from.toUpperCase() + ' | '+ json_msg.time, post_id=json_msg.id);
             } else {
-                if (json_msg.user.toUpperCase()=='ADMIN'){
+                if (json_msg.user_from.toUpperCase()=='ADMIN'){
                     add_broadcast_msg(channel=msg.room, post=json_msg.post, post_info=json_msg.time);
                 } else { 
-                    add_in_msg(channel=msg.room, post=json_msg.post, post_info=json_msg.user_from.toUpperCase() + ' | '+ json_msg.time, post_image= json_msg.user_from_img, post_id=json_msg.id);
+                    add_in_msg(channel=msg.room, post=json_msg.post, post_user= json_msg.user_from.toUpperCase(), post_info= json_msg.time, post_image= json_msg.user_from_img, post_id=json_msg.id);
                 }
             }
       } 
@@ -399,7 +400,7 @@ $(document).ready(function() {
             
             socket.emit('join', {room: channel});
             // broadcasting 
-            socket.emit('my_room_event', {room: channel, data: nickname.toUpperCase() +' has entered', user: 'Admin'});
+            socket.emit('my_room_event', {room: channel, data: nickname.toUpperCase() +' has entered', user: 'ADMIN'});
 
         });
 

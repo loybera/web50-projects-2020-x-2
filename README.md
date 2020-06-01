@@ -9,9 +9,9 @@ It's possible leave channels.  If you logout and go inside again, the app will j
  channels again.
 
 Video url: 
-#----------------------------------------------------------------------------------------
+####----------------------------------------###
 Contain
-#----------------------------------------------------------------------------------------
+####----------------------------------------###
 templates:
 login.htm (has login at chat -without password-)
 chat.htm (has the visualization of channels and chats)
@@ -31,7 +31,7 @@ the server side with sockets processing and object channel, users and channels l
 
 Model.py
 The class model used in project2
-#----------------------------------------------------------------------------------------
+####----------------------------------------###
 
 Objectives: 
 - Learn to use JavaScript to run code server-side.
@@ -85,7 +85,7 @@ Personal Touch: Add at least one additional feature to your chat application of 
 Feel free to be creative, but if you’re looking for ideas, possibilities include: supporting 
 deleting one’s own messages, supporting use attachments (file uploads) as messages, or supporting 
 private messaging between two users.
-# no ok
+# no ok (yet)
 
 In README.md, include a short writeup describing your project, what’s contained in each file, and 
 (optionally) any other additional information the staff should know about your project. Also, 

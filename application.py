@@ -287,7 +287,7 @@ def login():
 
                 print(f"login load to list_channeluser: {list_channeluser}    ")
        
-                return redirect(url_for('chat'))
+                return redirect(url_for('home'))
 
 
  
@@ -330,6 +330,18 @@ def about():
 @login_required
 def chat():
 
+    # iniatilize defaults channels 
+    print(f"N° Channels: {len(list_channel)}")
+    if (len(list_channel) == 0):
+        addChannel(channel="things", name="Things", owner="Admin", public=True)
+        addChannel(channel="otherthings", name="Other Things", owner="Admin", public=True)
+        addChannel(channel="barfriends", name="Bar Friends", owner="Admin", public=True)
+        addChannel(channel="soccermondays", name="Soccer Mondays", owner="Admin", public=True)
+        addChannel(channel="university", name="University", owner="Admin", public=True)
+        addChannel(channel="cs50pythoncourse", name="Cs50 Python course", owner="Admin", public=True)
+
+    print(f"N° Channels: {len(list_channel)}")
+    print(list_channel)
     nickname = session['nickname']
     list_channeluser = getChannelsByUser(nickname)
     print(f"list channels {list_channel}")
@@ -353,18 +365,7 @@ def chat():
 @app.route('/')
 def home():
 
-    # iniatilize defaults channels 
-    print(f"N° Channels: {len(list_channel)}")
-    if (len(list_channel) == 0):
-        addChannel(channel="things", name="Things", owner="Admin", public=True)
-        addChannel(channel="otherthings", name="Other Things", owner="Admin", public=True)
-        addChannel(channel="barfriends", name="Bar Friends", owner="Admin", public=True)
-        addChannel(channel="soccermondays", name="Soccer Mondays", owner="Admin", public=True)
-        addChannel(channel="university", name="University", owner="Admin", public=True)
-        addChannel(channel="cs50pythoncourse", name="Cs50 Python course", owner="Admin", public=True)
-
-    print(f"N° Channels: {len(list_channel)}")
-    print(list_channel)
+   
 
     if ('nickname' not in session):
         return redirect(url_for('login'))

@@ -69,8 +69,9 @@ function fnModalSearch() {
     <div class="incoming_msg" id="{% raw -%} {{ post_id }} {%- endraw %}">
       <div class="incoming_msg_img"> <img src="/static/img/user/{% raw -%}{{ post_image }}{%- endraw %}.png"> </div>
         <div class="received_msg">
-            <div class="received_withd_msg">
-            <span class="author"><a href="#" name="message_id" value="{% raw -%} {{ post_id }} {%- endraw %}"> {% raw -%} {{ post_user }} {%- endraw %} </a></span> 
+            <div class="received_withd_msg" name="message_id" value="{% raw -%} {{ post_id }} {%- endraw %}">
+            <span class="" > <p> {% raw -%} {{ post_user }} {%- endraw %} </p></span> 
+            <input type="submit" class="btn-info author" name="author"  value="{% raw -%} {{ post_user }} {%- endraw %}">
             <input type="hidden" id="message_id_{% raw -%}{{ post_id }}{%- endraw %}" value="{% raw -%}{{ post_id }}{%- endraw %}">
             <p>{% raw -%}{{ post }}{%- endraw %}</p>
             <span class="time_date"> {% raw -%} {{ post_info }} {%- endraw %}  </span>
@@ -245,10 +246,12 @@ function fnModalSearch() {
                            
                            <div class="chat_list" id="{{item.id}}">
                               <div class="chat_people">
-                              <div class="chat_img"> <img id="{{item.id}}_img" src="/static/img/user/{{item.image}}.png" alt="{{item.name}}"> </div>
-                              <div class="chat_ib">
-                                  <h5 id="{{item.id}}_name">{{item.name}} </h5> 
-                              </div>
+                                  <div class="chat_img"> 
+                                    <img id="{{item.id}}_img" src="/static/img/user/{{item.image}}.png" alt="{{item.name}}"> 
+                                  </div>
+                                  <div class="chat_ib">
+                                      <h5 id="{{item.id}}_name">{{item.name}} </h5> 
+                                  </div>
                               </div>
                           </div>
                  {% endfor%}
