@@ -102,13 +102,13 @@ def addUser(username, username_label):
 
 def addChannel(channel, name, owner, channel_type):
     createChannel  = True
-    chn = Channel(channel, name, owner, channel_type)
     for item in list_channel:
         if (item.id == channel.lower()):
             createChannel = False
             break
 
     if (createChannel):
+        chn = Channel(channel, name, owner, channel_type)
         list_channel.add(chn)
         chn.print_info()
 
@@ -188,7 +188,7 @@ def addMessageToChannel(channel, user_from, user_to, image, time, msg):
                     item.messages.pop(0)
                 # put new message in channel 
                 item.add_message(msg)
-                print(item.print_info())
+                item.print_info()
                 break
 
     return msg
@@ -208,6 +208,16 @@ def validateUserBychannel(username, channel):
     
     print("valid")
     return True
+
+def getChannel(channel):
+
+    if (len(list_channel)>0):
+        for item in list_channel:
+            if (item.id == channel.lower()):
+                return item
+
+    # default the channel
+    return None
 
 def getChannelLabel(channel):
 
@@ -267,7 +277,7 @@ def getChannelsByUser(username):
 
 def findChannel(channel, user_to, user_from):
 
-    separator = "-to-"
+    separator = "__to__"
     channelusers = channel.split(separator)
     
     if (len(channelusers)>1):
@@ -299,7 +309,7 @@ def leaveRoomByUser(username):
 
     for item in list_channeluser:
         print(f"leave channel {item.id}")
-        leave_room(item.id)
+        # leave_room(item.id)
         print(f"remove channel {item.id}")
         removeChannelFromUser(item.id, username)
 
@@ -358,9 +368,13 @@ def logout():
     # delete the session variables
     if ('username' in session):
         username= session['username']
-        # leaveRoomByUser(username)
-        # MyNamespace.on_disconnect_request()
-        # print("inactive user " + username)
+
+        # TODO: enviar a todos los grupos el aviso de logout
+        print (f"disconect user {username}")
+        socketio.emit('my_response',
+             {'data': 'User '+username+' Disconnected!', 'count': 0},
+                      namespace='/chat')
+        
 
         del session ['username'] 
         del session ['username_label'] 
@@ -457,7 +471,7 @@ def background_thread():
         count += 1
         socketio.emit('my_response',
                       {'data': 'Server generated event', 'count': count},
-                      namespace='/project2')
+                      namespace='/chat')
 
 class MyNamespace(Namespace):
 
@@ -518,8 +532,10 @@ class MyNamespace(Namespace):
         
     def on_join_user(self, message):
         
+        
         username = session['username']
         room = message['room']
+        print(f"join user {username} to channel {room}")
         room_type = message['room_type']
         try:
             user_from = message['user_from']
@@ -531,8 +547,10 @@ class MyNamespace(Namespace):
                 return False
             else:
                 if (chn.channel_type =='PRIVATE' and len(chn.users)==2):
-                    user_from = chn.users[0].id
-                    user_to = chn.user[1].id
+                    if (user_from == chn.users[0]):
+                        user_to = chn.users[1]
+                    else: 
+                        user_to = chn.users[0]
                 else:
                     print(f"Error, channel {room} not exists or there are not users inside")
                     return False     
@@ -549,7 +567,7 @@ class MyNamespace(Namespace):
 
         channel = findChannel(room, user_to, user_from)
 
-        if (create_room):
+        if (create_room == 'True'):
             addChannel(channel, room, 'Single_Chat', room_type)
             # TODO: push channel to clients or don't create private room in channel list
 
@@ -559,7 +577,7 @@ class MyNamespace(Namespace):
         # add channel to user profile for next login
         addChannelToUser(username=user_from, channel=channel, channel_label=user_to, channel_type=room_type, user_to= user_to, user_from = user_from)
 
-        # do the same with the other user
+        # do the same with the destination user
         addUserToChannel(channel, user_to)
         addChannelToUser(username=user_to, channel=channel, channel_label=user_from, channel_type=room_type, user_to= user_from, user_from = user_to)
 
@@ -595,6 +613,7 @@ class MyNamespace(Namespace):
              room=message['room'])
         close_room(message['room'])
 
+    # event for PUBLIC rooms
     def on_my_room_event(self, message):
         
         time = datetime.datetime.now()
@@ -602,37 +621,47 @@ class MyNamespace(Namespace):
         room = message['room']
         user_from = message['user_from']
         user_to = message['user_to']
-        print("user:"+ user_from)
-        
-        msg = addMessageToChannel(room, user_from, user_to, getUserImage(user_from), time, message['data'])         
+        room_type = message['room_type']
 
-        session['receive_count'] = session.get('receive_count', 0) + 1
-        emit('my_room',
-            {'data': message['data'], 'user_from': msg.user_from, 'user_to': msg.user_to, 'user_image': msg.user_from_img, 'time': msg.time, 'count': session['receive_count'], 'id': msg.id },
-            room=message['room'], user= user_from)
-
-    def on_my_room_event_user(self, message):
-        
-        time = datetime.datetime.now()
-        # message['data'] = msg
-        room = message['room']
-        user_from = message['user_from']
-        user_to = message['user_to']
         print("user:"+ user_from)
         
         user_image = getUserImage(user_from)
-        msg = addMessageToChannel(room, user_from, user_to, user_image, time, message['data'])         
+        msg = addMessageToChannel(channel=room, user_from=user_from, user_to=user_to, image=user_image, time=time, msg=message['data'])         
 
         session['receive_count'] = session.get('receive_count', 0) + 1
-        
         emit('my_room',
-            {'data': message['data'], 'user_from': msg.user_from, 'user_to': msg.user_to, 'user_image': msg.user_from_img, 'time': msg.time, 'count': session['receive_count'], 'id': msg.id },
-            room=message['room'], user= user_from)
+            {'data': message['data'], 'room': room, 'user_from': msg.user_from, 'user_to': msg.user_to, 'user_image': msg.user_from_img, 'time': msg.time, 'count': session['receive_count'], 'id': msg.id },
+            room=room, user= user_from)
 
-        # broadcasto to clients to push user_to
-        emit('my_join_user',
-             {'data': 'Msg for you!','room': room, 'user_to': user_to, 'user_from': user_from, 'user_image': user_image },
-             broadcast=True)
+        # broadcasto to clients to push at user_to
+        # IT'S not good, it's not secure but works for this project
+        # with more time I'd like to learn hwo to push only for this user socket only
+        if (room_type == 'PRIVATE'):
+            session['receive_count'] = session.get('receive_count', 0) + 1
+            emit('my_join_user',
+                {'data': 'Msg for you!','room': room, 'user_to': user_to, 'user_from': user_from, 'user_image': user_image, 'count': session['receive_count'] },
+                broadcast=True)
+
+    # # event for PRIVATE rooms
+    # def on_my_room_event_user(self, message):
+        
+    #     time = datetime.datetime.now()
+    #     # message['data'] = msg
+    #     room = message['room']
+    #     user_from = message['user_from']
+    #     user_to = message['user_to']
+        
+    #     print("user:"+ user_from)
+        
+    #     user_image = getUserImage(user_from)
+    #     msg = addMessageToChannel(channel=room, user_from=user_from, user_to=user_to, image=user_image, time=time, msg=message['data'])         
+
+    #     session['receive_count'] = session.get('receive_count', 0) + 1
+        
+    #     emit('my_room',
+    #         {'data': message['data'], 'user_from': msg.user_from, 'user_to': msg.user_to, 'user_image': msg.user_from_img, 'time': msg.time, 'count': session['receive_count'], 'id': msg.id },
+    #         room=message['room'], user= user_from)
+
              
     def on_disconnect_request(self):
         session['receive_count'] = session.get('receive_count', 0) + 1
@@ -641,7 +670,7 @@ class MyNamespace(Namespace):
         disconnect()
 
         username= session['username']
-        leaveRoomByUser(username)
+        # leaveRoomByUser(username)
         
 
     def on_my_ping(self):
@@ -657,7 +686,7 @@ class MyNamespace(Namespace):
     def on_disconnect(self):
         print('Client disconnected', request.sid)
 
-socketio.on_namespace(MyNamespace('/project2'))
+socketio.on_namespace(MyNamespace('/chat'))
 
 if __name__ == '__main__':
     app.secret_key = "secret key"
