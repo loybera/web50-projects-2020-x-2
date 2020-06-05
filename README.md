@@ -8,10 +8,30 @@ history in it, or create your own channels.
 It's possible leave channels.  If you logout and go inside again, the app will join the joined
  channels again.
 
-Video url: 
-####----------------------------------------###
-Contain
-####----------------------------------------###
+Model: channel, user, channeluser, messages
+All channels are keep it in the object channel lists called list_channels
+Each channel of the list_channels has a messages (messages) list and an users connected list (users).
+When the users leave the channel I kickoff him from the channel.users list
+Also, I have a list_users who has all the users created, active o not active (logout the site). Each user has too a channel list for initialize when he login and see your joined channels, publics or private (user to user)
+
+
+Video url:  https://youtu.be/4v1z3atA7Ag
+0' a  17''   login (user1)
+18'' 37'' user1 join to public room (created previusly by server at start)
+39'' login second user (user2)
+40''to 48'' user2 join public group with previusly messages loaded and chat with user 1
+0'50'' a 0'1:03'' chat between users
+1'04'' user2 create new channel
+1'16'' user2 join to many groups
+2'09'' join to private room (user to user) clicking on ingoing message name's (has a red hover efect) at public room
+2'57'' user2 filter your joined channels through the search box
+3'04'' user1 logout and login keeping yours channels joined and messages loaded
+3'12'' user1 join to channel created by user2
+3'40'' user2 close the browser and open it again, login and keep his channels joined and messages
+
+############################################
+# Contain
+############################################
 templates:
 login.htm (has login at chat -without password-)
 chat.htm (has the visualization of channels and chats)
@@ -20,6 +40,8 @@ about.htm (read this file)
 
 Css:
 /static/css/chat.css
+/static/css/chat.scss
+
 
 Js:
 /static/js/chat.jss
@@ -85,7 +107,7 @@ Personal Touch: Add at least one additional feature to your chat application of 
 Feel free to be creative, but if you’re looking for ideas, possibilities include: supporting 
 deleting one’s own messages, supporting use attachments (file uploads) as messages, or supporting 
 private messaging between two users.
-# no ok (yet)
+# ok
 
 In README.md, include a short writeup describing your project, what’s contained in each file, and 
 (optionally) any other additional information the staff should know about your project. Also, 

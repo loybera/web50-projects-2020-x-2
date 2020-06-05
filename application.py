@@ -369,13 +369,6 @@ def logout():
     if ('username' in session):
         username= session['username']
 
-        # TODO: enviar a todos los grupos el aviso de logout
-        print (f"disconect user {username}")
-        socketio.emit('my_response',
-             {'data': 'User '+username+' Disconnected!', 'count': 0},
-                      namespace='/chat')
-        
-
         del session ['username'] 
         del session ['username_label'] 
 
@@ -670,7 +663,9 @@ class MyNamespace(Namespace):
         disconnect()
 
         username= session['username']
+        print (f"disconect user {username}")
         # leaveRoomByUser(username)
+        # TODO: send for all channels joined the advice for user left or exit
         
 
     def on_my_ping(self):

@@ -9,60 +9,80 @@ $(document).ready(function() {
      return sentence[0];
      }
 
-     // Use a "/test" namespace.
-  // An application can open a connection on multiple namespaces, and
-  // Socket.IO will multiplex all those connections on a single
-  // physical channel. If you don't care about multiple channels, you
-  // can set the namespace to an empty string.
-  namespace = '/project2';
+  // name of the namespace (optional).
+  namespace = '/chat';
 
   // Connect to the Socket.IO server.
-  // The connection URL has the following format, relative to the current page:
   //     http[s]://<domain>:<port>[/<namespace>]
   var socket = io(namespace);
 
-    // Add a new post with given contents to DOM.
+    // template for admin messages 
     const broadcast_msg_template = Handlebars.compile(document.querySelector('#broadcast_msg_template').innerHTML);
     function add_broadcast_msg(channel, post, post_info) {
 
         // Create new post.
         const msg = broadcast_msg_template({'post': post, 'post_info': post_info});
-
         // Add post to DOM.
-        var divId = 'msg_history_'+channel;
-        document.querySelector('#'+divId).innerHTML += msg;
+        var divId = 'msg_history_'+ channel;
+
+        // Add post to DOM in the channel.
+        if (document.querySelector('#'+divId) == null){
+            console.log('add_broad: msg_history_'+channel+' no existe como ID');
+        } 
+        else {
+            document.querySelector('#'+divId).innerHTML += msg;
+        }
+
+
+
+        
         // scroll down to show new DOM
         var objDiv = document.getElementById(divId);
         objDiv.scrollTop = objDiv.scrollHeight;
     }
-    // Add a new post with given contents to DOM.
+
+    // template for input message (others message) 
     const in_msg_template = Handlebars.compile(document.querySelector('#in_msg_template').innerHTML);
-    function add_in_msg(channel, post, post_user, post_user_from, post_user_to, post_info, post_image, post_id) {
+    function add_in_msg(channel, post, post_user_to, post_user_from, post_info, post_image, post_id) {
 
         // Create new post.
-        const msg = in_msg_template({'post': post, 'post_user': post_user, 'post_user_from': post_user_from, 'post_user_to': post_user_to, 'post_info': post_info, 'post_image': post_image, 'post_id': post_id});
+        const msg = in_msg_template({'post': post,  'post_user_from': post_user_from, 'post_user_to': post_user_to, 'post_info': post_info, 'post_image': post_image, 'post_id': post_id});
 
         // Add post to DOM.
-        var divId = 'msg_history_'+channel;
-        document.querySelector('#'+divId).innerHTML += msg;
-        // scroll down to show new DOM
+        var divId = 'msg_history_'+ channel;
+        if (document.querySelector('#'+divId)  == null){
+            console.log('add_in: msg_history_'+channel+' no existe como ID');
+        } 
+        else {
+            document.querySelector('#'+divId).innerHTML += msg;
+        }
+         // scroll down to show new DOM
         var objDiv = document.getElementById(divId);
         objDiv.scrollTop = objDiv.scrollHeight;
     }
 
+    // template for output message (own message) 
     const out_msg_template = Handlebars.compile(document.querySelector('#out_msg_template').innerHTML);
-    function add_out_msg(channel, post, post_user, post_info, post_id) {
+    function add_out_msg(channel, post, post_user_from, post_info, post_id) {
 
         // Create new post.
-        const msg = out_msg_template({'post': post, 'post_user':post_user, 'post_info': post_info, 'post_id': post_id});
+        const msg = out_msg_template({'post': post, 'post_user_from':post_user_from, 'post_info': post_info, 'post_id': post_id});
 
         // Add post to DOM.
         var divId = 'msg_history_'+channel;
-        document.querySelector('#'+divId).innerHTML += msg;
+        if (document.querySelector('#'+divId) == null){
+            console.log('add_out: msg_history_'+channel+' no existe como ID');
+        } 
+        else {
+            document.querySelector('#'+divId).innerHTML += msg;
+        }
+
         // scroll down to show new DOM
         var objDiv = document.getElementById(divId);
         objDiv.scrollTop = objDiv.scrollHeight;
     }
+
+    // template for channel list joined div  (lateral left bar)
     const join_chn_template = Handlebars.compile(document.querySelector('#join_chn_template').innerHTML);
     function add_channel(parentElement, channel, channel_label, channel_image, channel_type, channel_user_from, channel_user_to) {
 
@@ -70,12 +90,18 @@ $(document).ready(function() {
         const msg = join_chn_template({'channel': channel, 'channel_label': channel_label, 'channel_image': channel_image, 'channel_type': channel_type, 'channel_user_from': channel_user_from, 'channel_user_to': channel_user_to});
 
         // Add post to DOM.
-        document.querySelector('#'+parentElement).innerHTML += msg;
+        if (document.querySelector('#'+parentElement) == null){
+            console.log("error to create channel in channel list joined");
+        }
+        else {
+            document.querySelector('#'+parentElement).innerHTML += msg;
+        }
         // scroll down to show new DOM
         var objDiv = document.getElementById(parentElement);
         objDiv.scrollTop = objDiv.scrollHeight;
     }
 
+    // template for modal windows with channels for join
     const modal_join_chn_template = Handlebars.compile(document.querySelector('#modal_join_chn_template').innerHTML);
     function add_channel_modal(parentElement, channel, channel_label, channel_image, channel_type, channel_user_from, channel_user_to) {
 
@@ -105,7 +131,7 @@ $(document).ready(function() {
             socket.emit('join', {room:channel, room_type: channel_type});
         } else {
             console.log("emit private join room: "+channel);
-            socket.emit('join_user', {room:channel, room_type: channel_type});
+            socket.emit('join_user', {room:channel, room_type: channel_type, user_from: username, create_room: 'False' });
     
         }        
     }
@@ -128,6 +154,8 @@ $(document).ready(function() {
 
     document.getElementById('btn_leave_room').style.visibility = 'hidden';
     
+    
+     
     //-------------------------------------------------------------
     //  click en chat list
     // change msg history and  header
@@ -175,7 +203,7 @@ $(document).ready(function() {
         document.getElementById('btn_leave_user_to_value').value= user_to;
 
 
-        var create_Room = 'True';
+        var create_room = 'True';
         if (document.getElementById(channel) == null){
             //add user to channel list
             // if($(".chat_list#"+channel).length == 0) {
@@ -190,7 +218,7 @@ $(document).ready(function() {
         
             } else {
             //active user in channel list
-                create_Room = 'False';
+                create_room = 'False';
                 $('div.chat_list').not($("#"+channel)).removeClass('active_chat')
                 $(".chat_list#"+channel).addClass('active_chat');
                 $("#room_name").val(channel);
@@ -208,24 +236,28 @@ $(document).ready(function() {
 
             var msgHistory = document.createElement("div");
             msgHistory.classList.add("msg_history");
-
             msgHistory.setAttributeNode(attrId);
+
             msgBefore =  document.getElementsByClassName("type_msg")[0];
             document.getElementById("msgs").insertBefore(msgHistory, msgBefore);
+
+            //sent create room-user
+            socket.emit('join_user', {room: channel, user_from: user_from, user_to: user_to, create_room: create_room, room_type: channel_type});
+
+
         } else {
             $(".msg_history#msg_history_"+channel).show();
         }
 
-        //sent create room-user
-        socket.emit('join_user', {room: channel, user_from: user_from, user_to: user_to, create_room: create_Room, room_type: channel_type});
-
+       
     }
 
+    
+    // channel name for private conversation, ordenated alphabetically
     function fn_get_channel(userto, userfrom){
-        // make a private channel name ordenated alphabetically
         var str = [userto, userfrom];
         str.sort();
-        return str[0]+'-to-'+str[1];
+        return str[0]+'__to__'+str[1];
 
     }
     //-------------------------------------------------------------
@@ -234,10 +266,15 @@ $(document).ready(function() {
     //-------------------------------------------------------------
     $(document).on('click','div.received_withd_msg',function () {
 
+        //only if click into the public channel to go to private channel
         if ($("#room_type").attr('value') == 'PUBLIC'){
 
             var msg_id = $(this).attr('id');
-            var user_to = $("#received_msg_user_"+msg_id).attr('value');
+            var user_to = $("#received_msg_user_from_"+msg_id).attr('value');
+            
+            //TODO: delete received_msg_user_+channel from template_in
+
+            // var from_channel = $("#channel__"+msg_id).attr('value');
             var user_from = username;
             var channel = fn_get_channel(user_to, user_from);
             var channel_label = fn_Title_Case(user_to);
@@ -266,21 +303,22 @@ $(document).ready(function() {
   // to the client. The data is then displayed in the "Received"
   // section of the page.
   socket.on('my_room', function(msg, cb) {
-    var channel = document.getElementById("room_name").value;
+    // console.log("recibe canal:"+channel);
+    var channel = msg.room; //document.getElementById("room_name").value;
     if (channel) {
 
         if (msg.user_from  == username){
-                add_out_msg(channel=channel, post=msg.data, post_user=msg.user_from, post_info= msg.time, post_id=msg.id );
+                add_out_msg(channel=channel, post=msg.data, post_user_from=msg.user_from, post_info= msg.time, post_id=msg.id );
         } else {
             if (msg.user_from=='admin'){
                 add_broadcast_msg(channel=channel, post=msg.data, post_info=msg.time);
             } else {    
-                add_in_msg(channel=channel, post=msg.data, post_user= msg.user_from, post_user_to= msg.user_to, post_user_from= msg.user_from,  post_info=  msg.time, post_image=msg.user_image, post_id=msg.id);
-            }
+                add_in_msg(channel=channel, post=msg.data, post_user_to= msg.user_to, post_user_from= msg.user_from, post_info=msg.time, post_image=msg.user_image, post_id=msg.id);
+            }   
+
         }
-        // $('#msgs_'+channel).append('<li>' + $('<div/>').text(   msg .data ).html());
-    }else {
-        $('#log').append('<li>' + $('<div/>').text(   msg .data ).html());
+     }else {
+        $('#log').append('<li>No channel:' + $('<div/>').text(   msg .data ).html());
         // scroll down to show new DOM
         var objDiv = document.getElementById("log");
         objDiv.scrollTop = objDiv.scrollHeight;
@@ -302,12 +340,12 @@ $(document).ready(function() {
             console.log(json_msg);
 
             if (json_msg.user_from == username ){
-                    add_out_msg(channel=msg.room, post=json_msg.post, post_user=json_msg.user_from, post_info= json_msg.time, post_id=json_msg.id);
+                    add_out_msg(channel=msg.room, post=json_msg.post, post_user_from=json_msg.user_from, post_info= json_msg.time, post_id=json_msg.id);
             } else {
                 if (json_msg.user_from =='admin'){
                     add_broadcast_msg(channel=msg.room, post=json_msg.post, post_info=json_msg.time);
                 } else { 
-                    add_in_msg(channel=msg.room, post=json_msg.post, post_user= json_msg.user_from, post_user_to= json_msg.user_to, post_user_from= json_msg.user_from, post_info= json_msg.time, post_image= json_msg.user_from_img, post_id=json_msg.id);
+                    add_in_msg(channel=msg.room, post=json_msg.post, post_user_to= json_msg.user_to, post_user_from= json_msg.user_from, post_info= json_msg.time, post_image= json_msg.user_from_img, post_id=json_msg.id);
                 }
             }
       } 
@@ -328,13 +366,14 @@ $(document).ready(function() {
 
     console.log('compare '+username + 'user_to: '+msg.user_to);
 
+    // if user logged is the user destination join the channel
     if (username == msg.user_to  ){
         console.log('OK'+username + 'user_to: '+msg.user_to);
         //join if not exists
         if($(".chat_list#"+channel).length > 0) {
             console.log("channel user already conected");
         } else {
-            fn_join_user(msg.user_to, msg.user_from, msg.room, msg.user_from, user_image, channel_type);
+            fn_join_user(msg.user_from, msg.user_to, msg.room, msg.user_from, user_image, channel_type);
         }
     }
 
@@ -390,12 +429,12 @@ $(document).ready(function() {
 
           // add_in_msg(msg.messages[i], 'User' + ' | '+ 'Fecha Hora');
           if (json_msg.user_from == username){
-                add_out_msg(channel=msg.room, post=json_msg.post, post_user=json_msg.user_from, post_info=  json_msg.time, post_id=json_msg.id);
+                add_out_msg(channel=msg.room, post=json_msg.post, post_user_from=json_msg.user_from, post_info=  json_msg.time, post_id=json_msg.id);
           } else {
               if (json_msg.user_from=='admin'){
                   add_broadcast_msg(channel=msg.room, post=json_msg.post, post_info=json_msg.time);
               } else { 
-                  add_in_msg(channel=msg.room, post=json_msg.post, post_user= json_msg.user_from, post_user_to= json_msg.user_to, post_user_from= json_msg.user_from, post_info= json_msg.time, post_image= json_msg.user_from_img, post_id=json_msg.id);
+                  add_in_msg(channel=msg.room, post=json_msg.post, post_user_to= json_msg.user_to, post_user_from= json_msg.user_from, post_info= json_msg.time, post_image= json_msg.user_from_img, post_id=json_msg.id);
               }
           }
     } 
@@ -404,29 +443,6 @@ $(document).ready(function() {
       cb();
 });
  
-// Interval function that tests message latency by sending a "ping"
-  // message. The server then responds with a "pong" message and the
-  // round trip time is measured.
-  var ping_pong_times = [];
-  var start_time;
-//   window.setInterval(function() {
-//       start_time = (new Date).getTime();
-//       socket.emit('my_ping');
-//   }, 1000);
-
-  // Handler for the "pong" message. When the pong is received, the
-  // time from the ping is stored, and the average of the last 30
-  // samples is average and displayed.
-  socket.on('my_pong', function() {
-      var latency = (new Date).getTime() - start_time;
-      ping_pong_times.push(latency);
-      ping_pong_times = ping_pong_times.slice(-30); // keep last 30 samples
-      var sum = 0;
-      for (var i = 0; i < ping_pong_times.length; i++)
-          sum += ping_pong_times[i];
-      $('#ping-pong').text(Math.round(10 * sum / ping_pong_times.length) / 10);
-  });
-
   // Handlers for the different forms in the page.
   // These accept data from the user and send it to the server in a
   // variety of ways
@@ -553,14 +569,13 @@ $(document).ready(function() {
 
             
             socket.emit('join', {room: channel, room_type: channel_type});
-            // broadcasting 
-            socket.emit('my_room_event', {room: channel, data: fn_Title_Case(username)  +' has entered', user_from: 'admin', user_to: channel});
+            // broadcasting TO ROOM
+            socket.emit('my_room_event', {room: channel, data: fn_Title_Case(username)  +' has entered', user_from: 'admin', user_to: channel, room_type: channel_type});
 
         });
 
 
-    // socket.emit('join', {room: $('#join_room').val()});
-      return false;
+       return false;
   });
 
   $('form#leave').submit(function(event) {
@@ -574,7 +589,6 @@ $(document).ready(function() {
 
         var channel_image = $('img#'+channel+'_img').attr('src');
 
-        // document.getElementById("msgs_top_label_room").innerHTML='';
         document.getElementById("msgs_top_label").innerHTML='';
         document.getElementById('btn_leave_room').style.visibility = 'hidden';
         document.getElementById('btn_leave_room_value').value= '';
@@ -599,19 +613,17 @@ $(document).ready(function() {
       var room_type='PUBLIC';  
       var channel = $('#room_name').val();
       var user_to = $('#btn_leave_user_to_value').val();
+      var data = $('#room_data').val();
 
       if ($("#room_type").val()=='PRIVATE'){
           room_type='PRIVATE'
-
-          socket.emit('my_room_event_user', {room: channel, data: $('#room_data').val(), user_from: username, user_to: user_to, room_type: room_type });
-          $('#room_data').val('');
+      } 
     
+      socket.emit('my_room_event', {room: channel, data: data, user_from: username, user_to: user_to, room_type: room_type });
+        $('#room_data').val('');
 
-        }else{
-            socket.emit('my_room_event', {room: channel, data: $('#room_data').val(), user_from: username, user_to: channel, room_type: room_type });
-            $('#room_data').val('');
-      
-        }
+
+        
 
 
 
@@ -625,6 +637,7 @@ $(document).ready(function() {
 
   $('form#disconnect').submit(function(event) {
       socket.emit('disconnect_request');
+      form.submit()
       return false;
   });
 

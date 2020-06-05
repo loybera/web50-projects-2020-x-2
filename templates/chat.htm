@@ -66,17 +66,17 @@ function fnModalSearch() {
 </script>
 
 <script id="in_msg_template" type="text/x-handlebars-template">
-    <div class="incoming_msg" id="{% raw -%} {{ post_id }} {%- endraw %}">
+    <div class="incoming_msg" id="channel_{% raw -%} {{ post_id }} {%- endraw %}" value="{% raw -%} {{ channel }} {%- endraw %}">
       <div class="incoming_msg_img"> 
           <img src="/static/img/user/{% raw -%}{{ post_image }}{%- endraw %}.png"> 
       </div>
       <div class="received_msg">
-            <div class="received_withd_msg" id="{% raw -%} {{ post_id }} {%- endraw %}" value="{% raw -%} {{ post_id }} {%- endraw %}">
-                <div class="received_msg_user" id="received_msg_user_{% raw -%} {{ post_id }} {%- endraw %}" value="{% raw -%} {{ post_user }} {%- endraw %}">
-                  <span> <p> {% raw -%} {{ post_user }} {%- endraw %} </p></span>
+            <div class="received_withd_msg" id="{% raw -%} {{ post_id }} {%- endraw %}" value="{% raw -%} {{ post_user_from }} {%- endraw %}">
+                <div class="received_msg_user" id="received_msg_user_from_{% raw -%} {{ post_id }} {%- endraw %}" value="{% raw -%} {{ post_user_from }} {%- endraw %}">
+                  <span> <p> {% raw -%} {{ post_user_from }} {%- endraw %} </p></span>
                   <input type="hidden" id="received_msg_user_img_{% raw -%} {{ post_id }} {%- endraw %}" value="/static/img/user/{% raw -%}{{ post_image }}{%- endraw %}.png">
                   <input type="hidden" id="received_msg_user_to_{% raw -%} {{ post_id }} {%- endraw %}" value="{% raw -%}{{ post_user_to }}{%- endraw %}">
-                  <input type="hidden" id="received_msg_user_from_{% raw -%} {{ post_id }} {%- endraw %}" value="{% raw -%}{{ post_user_from }}{%- endraw %}">
+                  <!-- <input type="hidden" id="received_msg_user_from_{% raw -%} {{ post_id }} {%- endraw %}" value="{% raw -%}{{ post_user_from }}{%- endraw %}"> -->
                 </div>
                 <input type="hidden" id="message_id_{% raw -%}{{ post_id }}{%- endraw %}" value="{% raw -%}{{ post_id }}{%- endraw %}">
                 <p>{% raw -%}{{ post }}{%- endraw %}</p>
@@ -88,8 +88,8 @@ function fnModalSearch() {
  <script id="out_msg_template" type="text/x-handlebars-template">
     <div class="outgoing_msg">
         <div class="sent_msg">
-          <div class="send_msg_user" id="send_msg_user_{% raw -%} {{ post_id }} {%- endraw %}" value="{% raw -%} {{ post_user }} {%- endraw %}">
-            <span> <p> {% raw -%} {{ post_user }} {%- endraw %} </p></span>
+          <div class="send_msg_user" id="send_msg_user_{% raw -%} {{ post_id }} {%- endraw %}" value="{% raw -%} {{ post_user_from }} {%- endraw %}">
+            <span> <p> {% raw -%} {{ post_user_from }} {%- endraw %} </p></span>
           </div>
             <input type="hidden" id="message_id_{% raw -%}{{ post_id }}{%- endraw %}" value="{% raw -%}{{ post_id }}{%- endraw %}">
             <p>{% raw -%}{{ post }}{%- endraw %}</p>
@@ -219,7 +219,13 @@ function fnModalSearch() {
 
 
 <div class="container">
-  <h3 >Messaging</h3>
+  <div>
+    <div> <h1>   Messaging   </h1>  </div>
+    <div>
+      <form id="disconnect" action="logout" method="GET">
+      <input type="submit" class="btn btn-danger" name="btn_logout" id="btn_logout" value="Logout"></div>
+    </form>
+  </div>
   <div class="messaging">
       <div class="inbox_msg">
         <div class="inbox_people">
@@ -279,7 +285,7 @@ function fnModalSearch() {
             <form id="leave" method="POST" action='#'>
               <input type="hidden" name="btn_leave_room_value" id="btn_leave_room_value">
               <input type="hidden" name="btn_leave_user_to_value" id="btn_leave_user_to_value">
-              <button type="submit" class="btn btn-danger" name="btn_leave_room" id="btn_leave_room" value="Leave" > Leave </button>
+              <button type="submit" class="btn btn-warning" name="btn_leave_room" id="btn_leave_room" value="Leave" > Leave </button>
               
           </form>
         </div>
