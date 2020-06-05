@@ -76,38 +76,48 @@ prompted to type in a display name that will eventually be associated with every
 the user sends. If a user closes the page and returns to your app later, the display name 
 should still be remembered.
 # login.htm 
-- whitout password, you just have to choose your nickname
+- whitout password, you just have to choose your nickname. 
+plus: the system asign random profile image to users and channels
 
 Channel Creation: Any user should be able to create a new channel, so long as its name doesn’t 
 conflict with the name of an existing channel.
-# chat.htm button New
+# chat.htm 
+- clic in button New
+- if channel name exists don't create another
 
 Channel List: Users should be able to see a list of all current channels, and selecting one 
 should allow the user to view the channel. We leave it to you to decide how to display such a list.
-# chat.htm button Join
+# chat.htm button 
+- clic in button Join open a channel modal window
 
 Messages View: Once a channel is selected, the user should see any messages that have already 
 been sent in that channel, up to a maximum of 100 messages. Your app should only store the 
 100 most recent messages per channel in server-side memory.
-# ok
+# application.py
+def addMessageToChannel
+store all input messaggse and start to purgue the oldest message when they are over 100 messages by each channel
+
 
 Sending Messages: Once in a channel, users should be able to send text messages to others 
 the channel. When a user sends a message, their display name and the timestamp of the message 
 should be associated with the message. All users in the channel should then see the new message 
 (with display name and timestamp) appear on their channel page. Sending and receiving messages 
 should NOT require reloading the page.
-# ok
+# chat.js
+throw js the app show messages in channel joined without reload page, even if it a private channel show the new chat room with the other user automatically without reload the page
 
 Remembering the Channel: If a user is on a channel page, closes the web browser window, and goes 
 back to your web application, your application should remember what channel the user was on 
 previously and take the user back to that channel.
 # ok
+- the server keep a user list and the channel list by each user are still joined. If the user join to one channel and leave it, when he login again he didn't see this channel in his channel joined list when the page load
+
 
 Personal Touch: Add at least one additional feature to your chat application of your choosing! 
 Feel free to be creative, but if you’re looking for ideas, possibilities include: supporting 
 deleting one’s own messages, supporting use attachments (file uploads) as messages, or supporting 
 private messaging between two users.
-# ok
+# plus: user can clic over the name at message in a channel public to text a private user (like whatsapp). By this way the create a private room between users
 
 In README.md, include a short writeup describing your project, what’s contained in each file, and 
 (optionally) any other additional information the staff should know about your project. Also, 
